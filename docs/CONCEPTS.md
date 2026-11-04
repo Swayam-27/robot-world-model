@@ -61,6 +61,9 @@ I taught a neural network to imagine how a robot arm's world behaves just by wat
 | Rankings A, B, C | Brains ranked in MuJoCo (A), in MuJoCo with the reader's eyes (B), in the dream (C) |
 | Spearman correlation | One number from -1 to 1 for how well two rankings agree; 1 = identical order. The headline result |
 | Sim-to-real gap | A model trained in simulation failing on a real robot because reality looks and behaves differently |
+| Rendering | Turning the 3D scene (arm, table, can) into a flat picture, like taking a photo of it |
+| Headless rendering | Rendering on a computer with no screen (like Kaggle): the picture is drawn into memory instead of a window. EGL uses the GPU driver, OSMesa does it in software on the CPU |
+| Resolution | How many pixels a picture has. 64x64 = 4,096 pixels x 3 colours = 12,288 numbers per frame. Small on purpose: the world model must draw every pixel, 100 times per dream |
 
 ## Ways robots learn to move (context for interviews)
 

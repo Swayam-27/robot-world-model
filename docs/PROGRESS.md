@@ -1,21 +1,21 @@
 # Progress
 
-**Current step:** Step 0 · Get ready
+**Current step:** Step 2 · Policies
 **Target:** resume-ready on 2027-01-04. Exams (assumed) Nov 17 to 30: no project work.
 
 Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 
 ## Step 0 · Get ready (this week)
-- [ ] Port the Real vs AI Faces custom CNN to PyTorch (train, save, reload, log a loss curve)
-- [ ] Create the GitHub repo from this folder and push it
-- [ ] Kaggle: phone verified, GPU on, first cell clones the repo
+- [ ] Port the Real vs AI Faces custom CNN to PyTorch (train, save, reload, log a loss curve) · moved to just before Step 4 (see DECISIONS.md)
+- [x] Create the GitHub repo from this folder and push it
+- [ ] Kaggle: phone verified, GPU on, first cell clones the repo · phone + clone done; GPU not needed until Step 4
 - [ ] Weights & Biases (or TensorBoard) logging works
 
 ## Step 1 · Real world runs (Nov 3 to 9)
-- [ ] Pusher-v5 renders 64x64 frames headless on Kaggle
-- [ ] GIF of a random episode shows fingertip, object and goal in every frame
-- [ ] `object_goal_distance(obs)` helper written and tested
-- [ ] Same seed gives the same first frame
+- [x] Pusher-v5 renders 64x64 frames headless on Kaggle
+- [x] GIF of a random episode shows fingertip, object and goal in every frame
+- [x] `object_goal_distance(obs)` helper written and tested
+- [x] Same seed gives the same first frame
 
 ## Step 2 · Policies (Nov 3 to 9)
 - [ ] SAC trained on CPU with checkpoints
@@ -73,3 +73,5 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 Newest first. One entry per session: date, what got done, what's next, blockers.
 
 <!-- /end-session adds entries here -->
+
+- **2026-11-04** · Step 0 repo pushed; Step 1 done. `PusherEnv` behind the `ArmEnv` interface, fixed camera C, `envs/check_env.py` passes locally and on Kaggle CPU (headless; both EGL and OSMesa work, EGL is the default), random-episode GIF looks right. Next: Step 2, SAC on Kaggle CPU. Blockers: none.
