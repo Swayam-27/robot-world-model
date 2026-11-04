@@ -1,0 +1,32 @@
+# Example experiment config. Copy and edit for each new experiment;
+# record what changed in docs/DECISIONS.md.
+name: world_model_v1
+seed: 0
+
+data:
+  kaggle_dataset: "<your-username>/pusher-episodes"   # fill in after Step 3
+  frame_size: 64
+  context_frames: 4
+  val_fraction: 0.1        # split by episode, never by frame
+
+model:
+  type: diamond_unet
+  channels: [64, 64, 64, 64]
+  action_dim: 7
+  action_history: 4        # last 4 actions -> MLP -> conditioning vector
+
+training:
+  batch_size: 64
+  lr: 1.0e-4
+  optimizer: adamw
+  mixed_precision: true
+  noise_augmentation_max: 0.7   # GameNGen setting; set 0.0 for the ablation
+  checkpoint_every_minutes: 30
+  log_samples_every_steps: 2000
+
+sampling:
+  denoising_steps: 4
+
+logging:
+  backend: wandb           # or tensorboard
+  project: robot-world-model

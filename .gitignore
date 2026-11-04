@@ -1,0 +1,21 @@
+# data and model files live on Kaggle / Hugging Face, not in git
+*.npz
+*.pt
+*.pth
+*.zip
+ckpts/
+checkpoints/
+episodes/
+outputs/
+wandb/
+runs/
+
+# python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# local Claude Code settings
+.claude/settings.local.json

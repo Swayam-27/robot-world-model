@@ -1,0 +1,20 @@
+# Decisions
+
+Every design choice and every experiment change, with the reason. Newest at the bottom. Format: date · decision · why · alternatives considered.
+
+## Starting decisions (2026-11-03)
+
+- **Environment: MuJoCo Pusher-v5** · reads as robotics, contact-rich, 100-step episodes keep rollouts short · alternatives: own maze game (more fun, less robotics), Reacher (too simple, no object).
+- **Headline metric: rank correlation of policy rankings** · it is what robotics teams need ("which checkpoint do we deploy?"), mirrors 1X's evaluation result · alternative: pixel error only (doesn't show usefulness).
+- **Frames 64x64, 4-frame context** · fits free T4 GPUs, matches DIAMOND's small Atari setup.
+- **World model: DIAMOND-style pixel diffusion with EDM** · proven small and playable on one consumer GPU; start from its code, not from scratch.
+- **Noise augmentation on context frames, max 0.7** · GameNGen found it essential against drift.
+- **State reader instead of true state in the dream** · policy only sees pixels, like a real robot camera; ranking B isolates the reader's error.
+- **Policies: SAC via Stable-Baselines3, trained on state, on CPU** · we use RL, we don't research it; saves GPU quota.
+- **Eval seeds 10000 to 10049, never in training** · prevents leakage.
+- **Compute: free Kaggle GPUs** · no budget; everything kept small.
+- **Solo project** (optionally one friend on the policy side only) · every design answer in interviews must be mine.
+
+## Log
+
+<!-- add entries below: YYYY-MM-DD · decision · why · alternatives -->
