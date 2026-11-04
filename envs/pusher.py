@@ -10,7 +10,26 @@ if sys.platform.startswith("linux"):
 import gymnasium as gym
 import numpy as np
 
-from envs.constants import CAMERA_CONFIG, ENV_ID, FRAME_SIZE, GOAL_XYZ, OBJECT_XYZ, OBS_DIM
+from envs.constants import CAMERA_CONFIG, ENV_ID, FRAME_SIZE, GOAL_XYZ, OBJECT_XYZ, OBS_DIM, TRAIN_SEEDS
+
+
+class TrainSeedReset(gym.Wrapper):
+    """Every reset starts from a seed drawn from TRAIN_SEEDS, so eval start positions never appear in training."""
+
+    def __init__(self, env: gym.Env, rng_seed: int = 0) -> None:
+        super().__init__(env)
+        self._rng = np.random.default_rng(rng_seed)
+
+    def reset(self, *, seed: int | None = None, options: dict | None = None):
+        if seed is not None:                     # SB3 passes its seed once at the start
+            self._rng = np.random.default_rng(seed)
+        start_seed = int(self._rng.choice(TRAIN_SEEDS))
+        return self.env.reset(seed=start_seed, options=options)
+
+
+def make_train_env(rng_seed: int = 0) -> gym.Env:
+    """Gymnasium Pusher for RL training (Stable-Baselines3 needs a gym.Env). No rendering: faster."""
+    return TrainSeedReset(gym.make(ENV_ID), rng_seed=rng_seed)
 
 
 def object_goal_distance(obs: np.ndarray) -> float:

@@ -48,6 +48,14 @@ I taught a neural network to imagine how a robot arm's world behaves just by wat
 | Seed | A number fixing where the can and goal start, so a test repeats exactly |
 | Reinforcement learning | Learning by trial and error with rewards |
 | SAC | The RL algorithm used, ready-made in Stable-Baselines3 |
+| Reward | The score the simulator gives every step. Pusher: minus can-to-goal distance, minus half the hand-to-can distance, minus a little for torque used. Always negative; closer to 0 is better |
+| Actor | The part of SAC that picks actions: the policy itself |
+| Critic | The part of SAC that guesses how much future reward a state + action will earn; the actor learns to pick what the critic likes. SAC uses two and trusts the more pessimistic one |
+| Replay buffer | A big store of past steps (state, action, reward, next state); SAC learns from random handfuls of it |
+| Off-policy | Can learn from old experience in the replay buffer, not only from the latest attempts. Makes SAC efficient enough for a CPU |
+| Entropy bonus | Extra reward for staying a bit random, so the policy keeps exploring (the "soft" in Soft Actor-Critic) |
+| Deterministic action | Using the policy's best-guess action instead of a random sample; makes every scoring run repeatable |
+| Smoke test | A tiny, fast run that only checks the code works end to end before the long run |
 | Checkpoint | A saved copy of a network mid-training; early ones clumsy, late ones skilled |
 | Context | The past frames the world model sees (the last 4) |
 | U-Net | The network shape inside the diffusion model: a CNN that shrinks the image to understand it, then grows it back to draw |

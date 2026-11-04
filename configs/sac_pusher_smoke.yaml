@@ -1,0 +1,15 @@
+# 1-minute smoke test of the training script (not a real run).
+name: sac_pusher_smoke
+seed: 0
+total_timesteps: 3_000
+checkpoint_every: 1_000
+out_dir: outputs/sac_pusher_smoke
+
+sac:
+  learning_rate: 3.0e-4
+  buffer_size: 1_000_000
+  batch_size: 256
+  gamma: 0.99
+  tau: 0.005
+  learning_starts: 1_000
+  device: cpu

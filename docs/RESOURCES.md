@@ -24,6 +24,8 @@ Study in this order. Nothing here builds this exact project; these are the piece
 - Gymnasium Pusher-v5 docs (observation and action layout): https://gymnasium.farama.org/environments/mujoco/pusher/
 - Laptop viewer snippet: Step 1, item 0 in `BUILD_GUIDE.md`
 - A pretrained Pusher policy to compare against: https://huggingface.co/moona-ai/mujoco-pusher-v5-ppo
+- SAC explained (OpenAI Spinning Up; read the intro, skip the maths at first): https://spinningup.openai.com/en/latest/algorithms/sac.html
+- Stable-Baselines3 SAC docs (parameters, saving/loading): https://stable-baselines3.readthedocs.io/en/master/modules/sac.html
 
 ## 6. Phase 2: a real arm (after January)
 - SO-101 open-source arm (Hugging Face, works with LeRobot): https://www.hackster.io/news/hugging-face-launches-the-so-101-an-upgraded-low-cost-3d-printable-autonomous-robot-arm-532360f441eb

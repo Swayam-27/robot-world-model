@@ -1,0 +1,16 @@
+# Step 2a: train SAC on Pusher's 23-number state (Kaggle CPU).
+# Run:  python -m policies.train_sac --config configs/sac_pusher.yaml
+name: sac_pusher
+seed: 0                      # SAC's own randomness + which train seeds the resets draw
+total_timesteps: 300_000     # 3,000 episodes of 100 steps; train longer if the last checkpoint can't push
+checkpoint_every: 20_000     # -> 15 checkpoints, the skill ladder for the policy pool
+out_dir: outputs/sac_pusher
+
+sac:                         # Stable-Baselines3 defaults, written out so they are visible
+  learning_rate: 3.0e-4
+  buffer_size: 1_000_000     # replay buffer: every step of training fits (300k)
+  batch_size: 256            # past steps sampled per update
+  gamma: 0.99                # how much future reward counts
+  tau: 0.005                 # how fast the target critics follow the critics
+  learning_starts: 1_000     # random steps before learning begins
+  device: cpu                # small MLPs: CPU is as fast as GPU here
