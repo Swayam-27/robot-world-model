@@ -18,3 +18,7 @@ Every design choice and every experiment change, with the reason. Newest at the 
 ## Log
 
 <!-- add entries below: YYYY-MM-DD · decision · why · alternatives -->
+
+- **2026-11-04 · Custom fixed camera: distance 1.6, elevation -50°, azimuth 135°, look-at (0.3, -0.3, 0)** (stored as `CAMERA_CONFIG` in `envs/constants.py`) · the default Pusher camera leaves about 70% of the 64x64 frame as black background, and the can is only 2 to 3 pixels; this angle fills the frame with the table and keeps arm, can and goal visible through random episodes · alternatives compared on seed 0 (`outputs/camera_options.png`): straight top-down and 60° tilt (arm leaves the frame at the bottom), side view (arm crowds the left edge).
+- **2026-11-04 · All data goes through the `ArmEnv` interface** (`envs/interface.py`: `reset(seed)`, `step(action)`, `frame()`, `state()`), implemented by `PusherEnv` in `envs/pusher.py` · keeps the data source swappable for a phase-2 real arm · alternative: call Gymnasium directly in each script.
+- **2026-11-04 · PyTorch port of the faces CNN moved from Step 0 to just before Step 4** · Steps 1 to 3 need no hand-written PyTorch; the port is warm-up for the state reader, which reuses its conv-block design (with flatten instead of global average pooling, since the reader must keep positions) · alternative: do it first as planned (delays MuJoCo work).

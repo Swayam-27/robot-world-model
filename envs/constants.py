@@ -17,6 +17,15 @@ FRAME_SIZE = 64            # frames are FRAME_SIZE x FRAME_SIZE x 3, uint8
 ACTION_DIM = 7             # joint torques in [-2, 2]
 OBS_DIM = 23
 
+# Fixed camera for every frame in the project (chosen 2026-11-04, see DECISIONS.md).
+# Changing it means re-recording all data.
+CAMERA_CONFIG: dict = {
+    "distance": 1.6,             # metres from the look-at point
+    "elevation": -50.0,          # degrees; negative = looking down at the table
+    "azimuth": 135.0,            # degrees around the vertical axis
+    "lookat": (0.3, -0.3, 0.0),  # point the camera aims at (x, y, z)
+}
+
 # --- Observation layout (Pusher-v5) ------------------------------------------
 JOINT_ANGLES = slice(0, 7)
 JOINT_VELOCITIES = slice(7, 14)
