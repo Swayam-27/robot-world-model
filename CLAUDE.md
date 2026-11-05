@@ -14,6 +14,8 @@ Learning links (repos, courses) are in `docs/RESOURCES.md`; suggest the relevant
 
 Plain-language explanations of every concept and term are in `docs/CONCEPTS.md`. Explain things at that level, and add new terms there as they come up.
 
+`docs/EXPLAIN.md` tells the whole project as a simple, fun story (everyday picture -> real term -> where in the repo). When a step finishes or a big new idea appears, add or update its chapter there.
+
 The full step-by-step instructions are in `docs/BUILD_GUIDE.md`. Read only the section for the current step, not the whole file.
 
 ## How to work with me
