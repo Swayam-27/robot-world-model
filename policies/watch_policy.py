@@ -5,7 +5,6 @@ Uses a TRAINING seed: eval seeds are only for scoring, never for looking/tuning.
 """
 import argparse
 import os
-import sys
 from pathlib import Path
 
 import imageio.v2 as imageio
@@ -13,6 +12,7 @@ import numpy as np
 
 from envs.constants import TRAIN_SEEDS
 from envs.pusher import PusherEnv, object_goal_distance  # sets MUJOCO_GL before anything else
+from policies.sb3_utils import load_sac
 
 
 def play_episode(model, env: PusherEnv, seed: int) -> tuple[list[np.ndarray], float, float]:
@@ -34,17 +34,9 @@ def main() -> None:
     args = parser.parse_args()
     assert args.seed in TRAIN_SEEDS, "only watch on training seeds"
 
-    # Create the renderer BEFORE importing Stable-Baselines3/torch: loading those graphics/CUDA
-    # libraries first crashed EGL rendering on Kaggle (segfault, 2026-11-05).
     env = PusherEnv()
     env.reset(args.seed); env.frame()
-    # SB3 -> torch.utils.tensorboard -> tensorboard imports TensorFlow if it is installed (Kaggle has it).
-    # TensorFlow ships its own LLVM, which clashes with OSMesa's LLVM ("LLVM ERROR: inconsistency in
-    # registered CommandLine options") and crashed EGL too. We never use TensorFlow, so block it.
-    sys.modules["tensorflow"] = None
-    from stable_baselines3 import SAC
-
-    model = SAC.load(args.ckpt, device="cpu")
+    model = load_sac(args.ckpt)  # blocks TensorFlow first (see sb3_utils)
     frames, start, end = play_episode(model, env, args.seed)
     env.close()
 
