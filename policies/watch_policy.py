@@ -5,6 +5,7 @@ Uses a TRAINING seed: eval seeds are only for scoring, never for looking/tuning.
 """
 import argparse
 import os
+import sys
 from pathlib import Path
 
 import imageio.v2 as imageio
@@ -37,6 +38,10 @@ def main() -> None:
     # libraries first crashed EGL rendering on Kaggle (segfault, 2026-11-05).
     env = PusherEnv()
     env.reset(args.seed); env.frame()
+    # SB3 -> torch.utils.tensorboard -> tensorboard imports TensorFlow if it is installed (Kaggle has it).
+    # TensorFlow ships its own LLVM, which clashes with OSMesa's LLVM ("LLVM ERROR: inconsistency in
+    # registered CommandLine options") and crashed EGL too. We never use TensorFlow, so block it.
+    sys.modules["tensorflow"] = None
     from stable_baselines3 import SAC
 
     model = SAC.load(args.ckpt, device="cpu")
