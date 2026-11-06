@@ -62,6 +62,10 @@ I taught a neural network to imagine how a robot arm's world behaves just by wat
 | Screening | Trying candidate brains on practice (training) seeds to choose the pool, before the sealed exam |
 | Paired comparison | Compare two brains on the *same* seeds, seed by seed. Easy and hard start positions cancel out, so smaller real gaps show up |
 | Standard error (SE) | How much a mean would wobble if you repeated the test with new seeds: std / sqrt(n). A gap smaller than about 2 SE could be luck (a near-tie) |
+| Success threshold (pass mark) | An episode succeeds if the can ends within 3 cm of the goal. Chosen by eye from pictures, never from exam results |
+| Dataset episode | One recorded attempt: 101 frames, the 100 actions taken, 101 true states. Frame t + action t -> frame t+1 |
+| Held-out policy | A brain kept completely out of the training videos, to test whether the dream can judge brains it never saw |
+| Replay check | Re-run the simulator from the episode's seed with the recorded actions; every state and frame must match exactly, proving the data lines up |
 | Context | The past frames the world model sees (the last 4) |
 | U-Net | The network shape inside the diffusion model: a CNN that shrinks the image to understand it, then grows it back to draw |
 | DIAMOND | A published open-source diffusion world model whose code we adapt |

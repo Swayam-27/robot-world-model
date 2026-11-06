@@ -75,7 +75,10 @@ def main() -> None:
         ep = record_episode(policies[row["brain"]], env, int(row["seed"]))
         assert ep["frames"].shape == (EPISODE_STEPS + 1, FRAME_SIZE, FRAME_SIZE, 3)
         assert ep["actions"].shape == (EPISODE_STEPS, ACTION_DIM) and ep["states"].shape == (EPISODE_STEPS + 1, OBS_DIM)
-        np.savez_compressed(path, **ep)
+        tmp = path.with_suffix(".tmp")
+        with open(tmp, "wb") as fh:  # write fully, then rename: a killed run never leaves a half-written .npz
+            np.savez_compressed(fh, **ep)
+        tmp.replace(path)
         finals.append(object_goal_distance(ep["states"][-1]))
         done_now += 1
         if done_now % 100 == 0:
