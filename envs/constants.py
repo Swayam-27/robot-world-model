@@ -16,6 +16,7 @@ EPISODE_STEPS = 100        # Pusher episodes are 100 steps
 FRAME_SIZE = 64            # frames are FRAME_SIZE x FRAME_SIZE x 3, uint8
 ACTION_DIM = 7             # joint torques in [-ACTION_LIMIT, ACTION_LIMIT]
 ACTION_LIMIT = 2.0         # Pusher clips torques to [-2, 2]
+SUCCESS_DISTANCE = 0.03    # metres: an episode succeeds if the can ends this close to the goal (chosen by eye 2026-11-06)
 OBS_DIM = 23
 
 # Fixed camera for every frame in the project (chosen 2026-11-04, see DECISIONS.md).

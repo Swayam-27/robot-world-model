@@ -54,7 +54,7 @@ The final grade is one number: **how well the dream's ranking of the brains matc
 
 ---
 
-## Chapter 2 · Teaching the brains (Step 2, in progress)
+## Chapter 2 · Teaching the brains (Step 2, done)
 
 ### Reinforcement learning = training a dog with treats
 Nobody shows the arm how to push. It tries things, gets a score, and slowly does more of what scored well. That's **reinforcement learning (RL)**: learning by trial and error from a score called the **reward**.
@@ -135,8 +135,18 @@ All 10 brains played the 50 eval seeds they had never seen (`policies/score.py`)
 
 `outputs/scores/real_scores.csv` is now the **answer key**. Everything from Step 3 on tries to reproduce this order *without* the real simulator.
 
-### Coming next in this step
-1. **Pass mark:** we'll look at frames and decide how close counts as "can on the goal" (the success threshold).
+### The pass mark: 3 cm (2026-11-06)
+We looked at 300 final pictures from practice episodes, sorted by how far the can ended from the goal:
+- at **2 cm** the can sits right in the middle of the red disc
+- at **4 cm** it has slid toward the rim
+
+So **3 cm** is the line: closer than 3 cm counts as **success**, otherwise it's a miss. Each brain's **success rate** is the share of the 50 exam episodes it passes.
+
+- **On the exam,** only the two best brains ever pass: `sac_960k` 30% and `sac_600k` 24%. Every other brain gets 0%. It's a strict exam.
+- **The rule we kept:** we chose 3 cm from the pictures *before* seeing any success rates. Choosing the pass mark that makes the results look nicest would be cheating on the exam.
+- **The ranking itself still uses distance,** which separates all 10 brains. Success rate is a second, easy-to-read number.
+
+**Step 2 is done.** We have the students (10 brains), the answer key (ranking A) and the pass mark.
 
 ---
 

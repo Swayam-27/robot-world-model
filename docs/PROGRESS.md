@@ -1,6 +1,6 @@
 # Progress
 
-**Current step:** Step 2 · Policies
+**Current step:** Step 3 · Dataset (Step 2 done 2026-11-06)
 **Target:** resume-ready on 2027-01-04. Exams (assumed) Nov 17 to 30: no project work.
 
 Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
@@ -20,7 +20,7 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 ## Step 2 · Policies (Nov 3 to 9)
 - [x] SAC trained on CPU with checkpoints · 1M steps, 50 checkpoints; best ~0.054 m from goal at 960k (train seeds)
 - [x] Pool of about 10 policies (checkpoints, noisy copies, random) · 10 brains, 0.054 to 0.241 m on training seeds, no near-ties
-- [ ] Success threshold chosen by looking at frames
+- [x] Success threshold chosen by looking at frames · 3 cm (`SUCCESS_DISTANCE`); eval success: sac_960k 30%, sac_600k 24%, others 0%
 - [x] `real_scores.csv` (ranking A) on the 50 eval seeds; ranking is stable when rerun · identical on rerun; 0.058 (sac_960k) to 0.245 m (random), no near-ties; same order as on training seeds (Spearman 1.0)
 
 ## Step 3 · Dataset (Nov 10 to 16)

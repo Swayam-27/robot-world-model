@@ -2,8 +2,8 @@
 
 Run:  python -m policies.score --config configs/pool.yaml
 Saves in scores_dir:
-    real_scores_per_seed.csv  every policy x every eval seed (final object-goal distance), for the pass mark later
-    real_scores.csv           mean final distance + rank per policy: RANKING A, the ground truth
+    real_scores_per_seed.csv  every policy x every eval seed (final object-goal distance)
+    real_scores.csv           mean final distance, rank and success rate per policy: RANKING A, the ground truth
 The exam is played twice and must give identical numbers (hard rule 4: deterministic, fixed noise seeds).
 Nothing is tuned on these results: the pool was chosen on training seeds (policies/pool.py).
 """
@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from envs.constants import EVAL_SEEDS
+from envs.constants import EVAL_SEEDS, SUCCESS_DISTANCE
 from policies.pool import build_pool, play_pool, rank_table
 
 
@@ -43,6 +43,7 @@ def main() -> None:
                              for n in ends for s, d in zip(EVAL_SEEDS, ends[n])])
     per_seed.to_csv(out / "real_scores_per_seed.csv", index=False)
     table = rank_table(ends)
+    table["success_rate"] = [(ends[n] < SUCCESS_DISTANCE).mean() for n in table["name"]]  # can ended on the goal
     table.to_csv(out / "real_scores.csv", index=False)
 
     print(table.to_string(index=False, float_format=lambda x: f"{x:.3f}"))
