@@ -3,7 +3,8 @@
 # Watch:   python -m policies.watch_live --name sac_960k             (laptop, live 3D window)
 run: outputs/sac_pusher_1m   # folder with ckpts/ from the 1M-step SAC run (override with --run on Kaggle)
 n_seeds: 50                  # screening uses the first 50 TRAIN_SEEDS (never EVAL_SEEDS)
-out_dir: outputs/pool
+out_dir: outputs/pool          # screening results (training seeds)
+scores_dir: outputs/scores    # exam results (eval seeds): real_scores.csv = ranking A
 
 # kind: sac (a checkpoint, optional Gaussian action noise with std `noise`, in torque units) or random.
 # Screening result (50 training seeds, mean final can-to-goal distance) in the comments.

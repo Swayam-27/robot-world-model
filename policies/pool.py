@@ -71,6 +71,28 @@ def final_distance(policy, env: PusherEnv, seed: int) -> float:
     return object_goal_distance(obs)
 
 
+def play_pool(pool: list, seeds: list[int]) -> dict[str, np.ndarray]:
+    """Final object-goal distance of every policy on every seed: {name: array of len(seeds)}."""
+    env = PusherEnv()
+    ends = {p.name: np.array([final_distance(p, env, s) for s in seeds]) for p in pool}
+    env.close()
+    return ends
+
+
+def rank_table(ends: dict[str, np.ndarray]) -> pd.DataFrame:
+    """Rank best -> worst by mean final distance; flag neighbours whose paired gap is < 2 standard errors."""
+    order = sorted(ends, key=lambda n: ends[n].mean())
+    rows = []
+    for i, name in enumerate(order):
+        row = {"rank": i + 1, "name": name, "end_mean_m": ends[name].mean(), "end_std_m": ends[name].std()}
+        if i + 1 < len(order):
+            diff = ends[order[i + 1]] - ends[name]  # how much worse the next brain is, on the SAME seeds
+            se = diff.std(ddof=1) / np.sqrt(len(diff))
+            row.update(gap_to_next_cm=diff.mean() * 100, near_tie=bool(diff.mean() < 2 * se))
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True)
@@ -80,21 +102,7 @@ def main() -> None:
 
     pool = build_pool(cfg["pool"], Path(args.run or cfg["run"]))
     seeds = TRAIN_SEEDS[: cfg["n_seeds"]]  # practice questions only; the exam is score.py on EVAL_SEEDS
-    env = PusherEnv()
-    ends = {p.name: np.array([final_distance(p, env, s) for s in seeds]) for p in pool}
-    env.close()
-
-    # Rank best -> worst, and compare each brain with the next one on the SAME seeds (paired difference)
-    order = sorted(ends, key=lambda n: ends[n].mean())
-    rows = []
-    for i, name in enumerate(order):
-        row = {"name": name, "end_mean_m": ends[name].mean(), "end_std_m": ends[name].std()}
-        if i + 1 < len(order):
-            diff = ends[order[i + 1]] - ends[name]  # how much worse the next brain is, per seed
-            se = diff.std(ddof=1) / np.sqrt(len(diff))
-            row.update(gap_to_next_cm=diff.mean() * 100, near_tie=bool(diff.mean() < 2 * se))
-        rows.append(row)
-    df = pd.DataFrame(rows)
+    df = rank_table(play_pool(pool, seeds))
 
     out = Path(cfg["out_dir"]); out.mkdir(parents=True, exist_ok=True)
     df.to_csv(out / "pool_screen.csv", index=False)

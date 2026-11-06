@@ -21,7 +21,7 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 - [x] SAC trained on CPU with checkpoints · 1M steps, 50 checkpoints; best ~0.054 m from goal at 960k (train seeds)
 - [x] Pool of about 10 policies (checkpoints, noisy copies, random) · 10 brains, 0.054 to 0.241 m on training seeds, no near-ties
 - [ ] Success threshold chosen by looking at frames
-- [ ] `real_scores.csv` (ranking A) on the 50 eval seeds; ranking is stable when rerun
+- [x] `real_scores.csv` (ranking A) on the 50 eval seeds; ranking is stable when rerun · identical on rerun; 0.058 (sac_960k) to 0.245 m (random), no near-ties; same order as on training seeds (Spearman 1.0)
 
 ## Step 3 · Dataset (Nov 10 to 16)
 - [ ] About 2,000 episodes recorded on training seeds only

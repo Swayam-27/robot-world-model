@@ -127,9 +127,16 @@ Two report cards rank the same 10 students. **Spearman** asks: *do they put the 
 - **Why ranks, not raw scores?** The dream might be harsher on everyone (every brain looks 2 cm worse). That's fine. A team choosing "which brain do we deploy?" only needs the *order* to be right. Spearman ignores the harshness and checks only the order.
 - **Our headline:** Spearman between ranking A (real MuJoCo) and ranking C (the dream).
 
+### The sealed exam: ranking A (2026-11-06)
+All 10 brains played the 50 eval seeds they had never seen (`policies/score.py`):
+- **Same order as in practice.** Spearman(practice order, exam order) = **1.0**, so the tryouts weren't a fluke.
+- **Played twice, identical to the last digit.** Nothing in our setup rolls unseeded dice.
+- **Still no near-ties.** It runs from 0.058 m (`sac_960k`) to 0.245 m (random).
+
+`outputs/scores/real_scores.csv` is now the **answer key**. Everything from Step 3 on tries to reproduce this order *without* the real simulator.
+
 ### Coming next in this step
-1. **The real exam:** every brain plays the 50 sealed eval seeds. Their scores go in `real_scores.csv`, which is **ranking A**, the ground truth.
-2. **Pass mark:** we'll look at frames and decide how close counts as "can on the goal" (the success threshold).
+1. **Pass mark:** we'll look at frames and decide how close counts as "can on the goal" (the success threshold).
 
 ---
 
