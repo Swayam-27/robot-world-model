@@ -1,0 +1,17 @@
+# Step 3: record the world-model dataset on TRAINING seeds (laptop), see DECISIONS.md 2026-11-06.
+# Run:    python -m data.record --config configs/dataset.yaml
+# Check:  python -m data.playback --config configs/dataset.yaml
+pool_config: configs/pool.yaml     # brain definitions + checkpoint folder
+held_out: [sac_400k, sac_960k_n0.8]  # never recorded: Step 8 tests the dream on brains it never saw
+episodes:                          # episodes per recorded brain (2,000 in total)
+  sac_960k: 200
+  sac_600k: 200
+  sac_260k: 200
+  sac_960k_n0.6: 200
+  sac_960k_n1.0: 200
+  sac_960k_n1.3: 200
+  sac_100k: 200
+  random: 600                      # random flailing: covers actions the brains never take
+first_seed_index: 100              # episodes use TRAIN_SEEDS[100], [101], ... one new start position each
+val_fraction: 0.1                  # last 10% of each brain's episodes -> validation (split by episode)
+out_dir: outputs/dataset           # ep_00000.npz ... + episodes.csv (zipped and uploaded to Kaggle afterwards)
