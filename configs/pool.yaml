@@ -1,0 +1,19 @@
+# Step 2b: candidate brains for the policy pool, screened on TRAINING seeds before any exam.
+# Run:  python -m policies.pool --config configs/pool.yaml   (add --run <folder> if the checkpoints live elsewhere, e.g. on Kaggle)
+run: outputs/sac_pusher_1m   # folder with ckpts/ from the 1M-step SAC run
+n_seeds: 50                  # screen on the first 50 TRAIN_SEEDS (never EVAL_SEEDS)
+out_dir: outputs/pool
+
+# kind: sac (a checkpoint, optional Gaussian action noise with std `noise`, in torque units) or random
+candidates:
+  - {name: random,          kind: random}
+  - {name: sac_20k,         kind: sac, ckpt: ckpts/sac_20000_steps}
+  - {name: sac_100k,        kind: sac, ckpt: ckpts/sac_100000_steps}
+  - {name: sac_180k,        kind: sac, ckpt: ckpts/sac_180000_steps}
+  - {name: sac_260k,        kind: sac, ckpt: ckpts/sac_260000_steps}
+  - {name: sac_400k,        kind: sac, ckpt: ckpts/sac_400000_steps}
+  - {name: sac_600k,        kind: sac, ckpt: ckpts/sac_600000_steps}
+  - {name: sac_960k,        kind: sac, ckpt: ckpts/sac_960000_steps}   # best on the 20-seed measurement
+  - {name: sac_960k_n0.3,   kind: sac, ckpt: ckpts/sac_960000_steps, noise: 0.3}
+  - {name: sac_960k_n0.6,   kind: sac, ckpt: ckpts/sac_960000_steps, noise: 0.6}
+  - {name: sac_960k_n1.0,   kind: sac, ckpt: ckpts/sac_960000_steps, noise: 1.0}

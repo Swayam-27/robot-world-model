@@ -57,6 +57,11 @@ I taught a neural network to imagine how a robot arm's world behaves just by wat
 | Deterministic action | Using the policy's best-guess action instead of a random sample; makes every scoring run repeatable |
 | Smoke test | A tiny, fast run that only checks the code works end to end before the long run |
 | Checkpoint | A saved copy of a network mid-training; early ones clumsy, late ones skilled |
+| Policy pool | The ~10 brains we rank: checkpoints from one SAC run, noisy copies of the best, and a random brain. Must be spread out, or any ranking is noise |
+| Action noise ("shaky hands") | Random Gaussian jitter added to a good brain's torques; more noise = worse brain. Seeded by the start position, so it is repeatable |
+| Screening | Trying candidate brains on practice (training) seeds to choose the pool, before the sealed exam |
+| Paired comparison | Compare two brains on the *same* seeds, seed by seed. Easy and hard start positions cancel out, so smaller real gaps show up |
+| Standard error (SE) | How much a mean would wobble if you repeated the test with new seeds: std / sqrt(n). A gap smaller than about 2 SE could be luck (a near-tie) |
 | Context | The past frames the world model sees (the last 4) |
 | U-Net | The network shape inside the diffusion model: a CNN that shrinks the image to understand it, then grows it back to draw |
 | DIAMOND | A published open-source diffusion world model whose code we adapt |
