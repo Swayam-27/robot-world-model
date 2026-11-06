@@ -101,13 +101,35 @@ The brain *does* learn to push, and it was still getting better when training st
 
 **Why not a GPU?** The brain's network is tiny and the physics runs on the CPU, so a GPU would sit idle. We save GPU hours for the world model.
 
+### The class of 10 brains (chosen 2026-11-06)
+We held **tryouts** on 50 practice seeds and kept 10 brains that are clearly different from each other:
+
+```
+best  sac_960k 0.054 m · sac_600k 0.074 · sac_400k 0.097 · sac_260k 0.119
+      960k + shaky hands 0.6 → 0.139 · 0.8 → 0.155 · 1.0 → 0.178 · 1.3 → 0.205
+worst sac_100k 0.220 · random 0.241
+```
+
+- **Shaky hands** = the best brain with random jitter added to every move. More jitter, worse pushing. It's like the same student taking the exam with cold hands.
+- **Near-tie check** = we compare two brains *on the same 50 seeds*, seed by seed (a **paired comparison**). If the average gap is smaller than the natural wobble (about 2 **standard errors**), we can't tell them apart, so one gets dropped. The 20k brain was dropped this way: it's just as useless as random.
+- **Why not the last checkpoint?** The 1M brain was *worse* than the 960k one. RL brains can get a bit worse late in training, so we pick by measurement, not by age.
+
+You can watch any of them live: `.venv\Scripts\python.exe -m policies.watch_live --name sac_960k`
+
+### Spearman: the one number the whole project is judged by
+Two report cards rank the same 10 students. **Spearman** asks: *do they put the students in the same order?*
+
+1. Replace each score by its **rank** (1st, 2nd, ... 10th) on each report card.
+2. For each student, take the rank difference *d* (2nd on one card, 4th on the other, so *d* = 2).
+3. ρ = 1 − 6·Σd² / (n·(n² − 1)), with n = 10 students.
+
+- ρ = **1**: identical order. ρ = **0**: no relation, like shuffling. ρ = **−1**: exactly reversed.
+- **Why ranks, not raw scores?** The dream might be harsher on everyone (every brain looks 2 cm worse). That's fine. A team choosing "which brain do we deploy?" only needs the *order* to be right. Spearman ignores the harshness and checks only the order.
+- **Our headline:** Spearman between ranking A (real MuJoCo) and ranking C (the dream).
+
 ### Coming next in this step
-1. **The class of ~10 brains (the pool):**
-   - about 6 checkpoints spread from clumsy to skilled
-   - 2 to 3 "shaky-hand" copies of the best brain (random noise added to its moves, with a fixed noise seed so it's repeatable)
-   - one fully random brain, the floor
-2. **The real exam:** every brain plays the 50 sealed eval seeds. Their scores go in `real_scores.csv`, which is **ranking A**, the ground truth.
-3. **Pass mark:** we'll look at frames and decide how close counts as "can on the goal" (the success threshold).
+1. **The real exam:** every brain plays the 50 sealed eval seeds. Their scores go in `real_scores.csv`, which is **ranking A**, the ground truth.
+2. **Pass mark:** we'll look at frames and decide how close counts as "can on the goal" (the success threshold).
 
 ---
 

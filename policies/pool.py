@@ -78,7 +78,7 @@ def main() -> None:
     args = parser.parse_args()
     cfg = yaml.safe_load(open(args.config))
 
-    pool = build_pool(cfg["candidates"], Path(args.run or cfg["run"]))
+    pool = build_pool(cfg["pool"], Path(args.run or cfg["run"]))
     seeds = TRAIN_SEEDS[: cfg["n_seeds"]]  # practice questions only; the exam is score.py on EVAL_SEEDS
     env = PusherEnv()
     ends = {p.name: np.array([final_distance(p, env, s) for s in seeds]) for p in pool}

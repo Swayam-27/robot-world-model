@@ -1,19 +1,20 @@
-# Step 2b: candidate brains for the policy pool, screened on TRAINING seeds before any exam.
-# Run:  python -m policies.pool --config configs/pool.yaml   (add --run <folder> if the checkpoints live elsewhere, e.g. on Kaggle)
-run: outputs/sac_pusher_1m   # folder with ckpts/ from the 1M-step SAC run
-n_seeds: 50                  # screen on the first 50 TRAIN_SEEDS (never EVAL_SEEDS)
+# Step 2b: the final policy pool (option A, chosen 2026-11-06 from screening on training seeds; see DECISIONS.md).
+# Screen:  python -m policies.pool --config configs/pool.yaml        (practice seeds, flags near-ties)
+# Watch:   python -m policies.watch_live --name sac_960k             (laptop, live 3D window)
+run: outputs/sac_pusher_1m   # folder with ckpts/ from the 1M-step SAC run (override with --run on Kaggle)
+n_seeds: 50                  # screening uses the first 50 TRAIN_SEEDS (never EVAL_SEEDS)
 out_dir: outputs/pool
 
-# kind: sac (a checkpoint, optional Gaussian action noise with std `noise`, in torque units) or random
-candidates:
-  - {name: random,          kind: random}
-  - {name: sac_20k,         kind: sac, ckpt: ckpts/sac_20000_steps}
-  - {name: sac_100k,        kind: sac, ckpt: ckpts/sac_100000_steps}
-  - {name: sac_180k,        kind: sac, ckpt: ckpts/sac_180000_steps}
-  - {name: sac_260k,        kind: sac, ckpt: ckpts/sac_260000_steps}
-  - {name: sac_400k,        kind: sac, ckpt: ckpts/sac_400000_steps}
-  - {name: sac_600k,        kind: sac, ckpt: ckpts/sac_600000_steps}
-  - {name: sac_960k,        kind: sac, ckpt: ckpts/sac_960000_steps}   # best on the 20-seed measurement
-  - {name: sac_960k_n0.3,   kind: sac, ckpt: ckpts/sac_960000_steps, noise: 0.3}
-  - {name: sac_960k_n0.6,   kind: sac, ckpt: ckpts/sac_960000_steps, noise: 0.6}
-  - {name: sac_960k_n1.0,   kind: sac, ckpt: ckpts/sac_960000_steps, noise: 1.0}
+# kind: sac (a checkpoint, optional Gaussian action noise with std `noise`, in torque units) or random.
+# Screening result (50 training seeds, mean final can-to-goal distance) in the comments.
+pool:
+  - {name: sac_960k,        kind: sac, ckpt: ckpts/sac_960000_steps}               # 0.054 m, the best
+  - {name: sac_600k,        kind: sac, ckpt: ckpts/sac_600000_steps}               # 0.074
+  - {name: sac_400k,        kind: sac, ckpt: ckpts/sac_400000_steps}               # 0.097
+  - {name: sac_260k,        kind: sac, ckpt: ckpts/sac_260000_steps}               # 0.119
+  - {name: sac_960k_n0.6,   kind: sac, ckpt: ckpts/sac_960000_steps, noise: 0.6}   # 0.139
+  - {name: sac_960k_n0.8,   kind: sac, ckpt: ckpts/sac_960000_steps, noise: 0.8}   # 0.155
+  - {name: sac_960k_n1.0,   kind: sac, ckpt: ckpts/sac_960000_steps, noise: 1.0}   # 0.178
+  - {name: sac_960k_n1.3,   kind: sac, ckpt: ckpts/sac_960000_steps, noise: 1.3}   # 0.205
+  - {name: sac_100k,        kind: sac, ckpt: ckpts/sac_100000_steps}               # 0.220
+  - {name: random,          kind: random}                                          # 0.241, the floor

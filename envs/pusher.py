@@ -42,14 +42,15 @@ def object_goal_distance(obs: np.ndarray) -> float:
 class PusherEnv:
     """Pusher-v5 that renders FRAME_SIZE x FRAME_SIZE RGB frames. Implements ArmEnv."""
 
-    def __init__(self, frame_size: int = FRAME_SIZE) -> None:
+    def __init__(self, frame_size: int = FRAME_SIZE, live: bool = False) -> None:
+        """live=True opens a 3D window on the laptop instead of rendering frames (frame() is then unavailable)."""
         camera = {**CAMERA_CONFIG, "lookat": np.array(CAMERA_CONFIG["lookat"])}
+        size = {} if live else {"width": frame_size, "height": frame_size}
         self._env = gym.make(
             ENV_ID,
-            render_mode="rgb_array",
-            width=frame_size,
-            height=frame_size,
+            render_mode="human" if live else "rgb_array",
             default_camera_config=camera,
+            **size,
         )
         self._obs: np.ndarray | None = None
 
