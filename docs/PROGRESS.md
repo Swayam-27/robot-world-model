@@ -6,7 +6,7 @@
 Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 
 ## Step 0 · Get ready (this week)
-- [ ] Port the Real vs AI Faces custom CNN to PyTorch (train, save, reload, log a loss curve) · moved to just before Step 4 (see DECISIONS.md)
+- [ ] Port the Real vs AI Faces custom CNN to PyTorch (train, save, reload, log a loss curve) · in progress as Step 4a: Swayam fills in `warmup/faces_cnn_torch.py` after 2 days of PyTorch study
 - [x] Create the GitHub repo from this folder and push it
 - [ ] Kaggle: phone verified, GPU on, first cell clones the repo · phone + clone done; GPU not needed until Step 4
 - [ ] Weights & Biases (or TensorBoard) logging works

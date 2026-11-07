@@ -34,3 +34,11 @@ Study in this order. Nothing here builds this exact project; these are the piece
 ## Compute notes
 - Kaggle: about 30 free GPU hours a week (T4/P100, 16 GB), sessions up to 12 hours, 20 GB working disk.
 - Kaggle private datasets: 100 GB per dataset and 100 GB total quota (uncompressed). This project needs about 3 GB.
+
+## Learning PyTorch (Step 4a warm-up, 2026-11-07)
+
+- Official "Learn the Basics" (tensors, datasets, nn.Module, autograd, training loop, save/load), the core of day 1: https://pytorch.org/tutorials/beginner/basics/intro.html
+- Zero to Mastery: Learn PyTorch for Deep Learning (free book, chapters 00 to 03 cover tensors, the workflow and CNNs): https://www.learnpytorch.io/
+- Karpathy, "Neural Networks: Zero to Hero" (micrograd video: what `loss.backward()` really does): https://karpathy.ai/zero-to-hero.html
+- Dive into Deep Learning, PyTorch edition (reference when a concept is unclear): https://d2l.ai/
+- Port exercise in this repo: `warmup/faces_cnn_torch.py` (fill in the TODOs)
