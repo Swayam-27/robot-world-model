@@ -32,6 +32,7 @@ The full step-by-step instructions are in `docs/BUILD_GUIDE.md`. Read only the s
 - Code runs on **free Kaggle GPUs (T4/P100, 16 GB)**, about 30 GPU hours a week, sessions up to 12 hours. Simulator, SAC and data recording run on CPU to save GPU quota.
 - Headless rendering: set `os.environ["MUJOCO_GL"] = "egl"` before any MuJoCo import (fallback: `"osmesa"`).
 - Notebooks in `notebooks/` only clone the repo and call scripts. Logic lives in `.py` files.
+- **All MuJoCo rendering happens on the laptop** (Kaggle's renderer differs by ~3.6% of pixels). Kaggle is for GPU training and heavy work on stored data. Simulator versions are pinned: `mujoco==3.17.0`, `gymnasium==1.4.0`.
 - Save checkpoints every 20 to 30 minutes; Kaggle sessions can die.
 
 ## Code conventions

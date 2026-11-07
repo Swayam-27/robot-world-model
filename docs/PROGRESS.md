@@ -1,6 +1,6 @@
 # Progress
 
-**Current step:** Step 3 · Dataset (Step 2 done 2026-11-06)
+**Current step:** Step 4 · State reader (Step 3 done 2026-11-07)
 **Target:** resume-ready on 2027-01-04. Exams (assumed) Nov 17 to 30: no project work.
 
 Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
