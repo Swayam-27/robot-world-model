@@ -24,10 +24,10 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 - [x] `real_scores.csv` (ranking A) on the 50 eval seeds; ranking is stable when rerun · identical on rerun; 0.058 (sac_960k) to 0.245 m (random), no near-ties; same order as on training seeds (Spearman 1.0)
 
 ## Step 3 · Dataset (Nov 10 to 16)
-- [ ] About 2,000 episodes recorded on training seeds only
-- [ ] 2 policies held out of the data entirely (optional, recommended)
-- [ ] Split 90/10 by episode, uploaded as private Kaggle dataset
-- [ ] Playback GIF confirms frames, actions and states line up (101 frames, 100 actions)
+- [x] About 2,000 episodes recorded on training seeds only · 2,000 episodes, 209 MB, recorded on the laptop (`data/record.py`)
+- [x] 2 policies held out of the data entirely (optional, recommended) · sac_400k and sac_960k_n0.8
+- [ ] Split 90/10 by episode, uploaded as private Kaggle dataset · split done (1,800 / 200, balanced per brain); upload `outputs/robot-world-model-dataset.zip` pending
+- [x] Playback GIF confirms frames, actions and states line up (101 frames, 100 actions) · all 2,000 files checked; replay of 2 episodes per brain matches exactly (`data/playback.py`)
 
 ## Step 4 · State reader (Nov 10 to 16)
 - [ ] Reader trained; per-group validation errors recorded

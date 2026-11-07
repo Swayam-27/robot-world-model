@@ -148,6 +148,28 @@ So **3 cm** is the line: closer than 3 cm counts as **success**, otherwise it's 
 
 **Step 2 is done.** We have the students (10 brains), the answer key (ranking A) and the pass mark.
 
+## Chapter 3 · Filming the brains (Step 3)
+
+**Why film at all?** The world model learns only from videos, so it can only imagine what it has seen. If it only watched the best brain, it would never learn what a *miss* looks like, and it would make bad brains look good in the dream. So we filmed **every kind of behaviour**.
+
+**What we filmed (`data/record.py`):**
+- 2,000 episodes, each from a **different practice start position**
+- 7 brains × 200 episodes, plus the **random brain × 600** (its flailing shows the world model moves no trained brain ever makes)
+- Two brains, **`sac_400k` and `sac_960k_n0.8`, were never filmed.** In Step 8 we'll ask: can the dream judge brains it has *never* seen? That's the "generalisation" test.
+
+**What one episode holds**, like a flipbook with notes:
+- **101 frames**: pictures, 64×64
+- **100 actions**: the twists the brain chose
+- **101 states**: the true 23 numbers behind each picture
+
+Frame *t* plus action *t* gives frame *t+1*. That's why there's one more frame than actions, and it's exactly the rule the world model must learn.
+
+**Training and validation split by episode.** 90% of each brain's episodes are for training and 10% for validation (checking). We split whole episodes, never single frames. Neighbouring frames are near-copies, so splitting by frame would be like testing a student on the homework they just did.
+
+**How we know the data is right: the replay check (`data/playback.py`).** For 2 episodes of every brain, we reset the simulator to the episode's start and replay the recorded actions. Every state and every frame came out **identical** to the file. If anything were shifted by even one step, the check would fail.
+
+**A real-life hiccup.** The laptop ran low on memory twice, and the recording was stopped. Because each episode is its own file, and saving is "write fully, then rename", we simply restarted and nothing was lost.
+
 ---
 
 ## The lab rules, and why they exist
@@ -164,7 +186,6 @@ So **3 cm** is the line: closer than 3 cm counts as **success**, otherwise it's 
 
 ## Coming chapters (one line each)
 
-- **Step 3 · Record the dataset:** film every brain (and random flailing) for about 2,000 episodes. The world model only learns what it has seen, mistakes included.
 - **Step 4 · The eyes:** a CNN learns to read the 23 numbers from pictures, because inside the dream there are only pictures.
 - **Step 5 · The imagination:** a diffusion model learns "given the last 4 frames and the action, draw the next frame".
 - **Step 6 · Dream for 100 steps:** feed its own drawings back in. The fight here is against **drift** (small errors snowballing).
