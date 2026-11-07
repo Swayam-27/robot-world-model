@@ -5,6 +5,7 @@ Checks every file's shapes, then for n random episodes of every brain: reset the
 and require every state and frame to match the file exactly (frame t + action t -> frame t+1).
 """
 import argparse
+import os
 from pathlib import Path
 
 import imageio.v2 as imageio
@@ -13,17 +14,27 @@ import pandas as pd
 import yaml
 
 from envs.constants import ACTION_DIM, EPISODE_STEPS, EVAL_SEEDS, FRAME_SIZE, OBS_DIM
-from envs.pusher import PusherEnv
+from envs.pusher import PusherEnv  # sets MUJOCO_GL before mujoco is imported
+
+import mujoco  # noqa: E402  (only for printing its version)
 
 
-def replay_matches(ep: dict, seed: int, env: PusherEnv) -> bool:
-    """Re-simulate the recorded actions from the seed; True if every state and frame matches the recording."""
-    obs = env.reset(seed)
-    ok = np.allclose(obs, ep["states"][0], atol=1e-5) and np.array_equal(env.frame(), ep["frames"][0])
+def replay_diff(ep: dict, seed: int, env: PusherEnv) -> dict:
+    """Re-simulate the recorded actions from the seed and measure how far states and frames are from the recording.
+
+    frame0_px: share of pixel values that differ already at reset (before any physics) = pure rendering difference.
+    """
+    states, frames = [env.reset(seed)], [env.frame()]
     for t in range(EPISODE_STEPS):
         obs, _, _ = env.step(ep["actions"][t])
-        ok &= np.allclose(obs, ep["states"][t + 1], atol=1e-5) and np.array_equal(env.frame(), ep["frames"][t + 1])
-    return bool(ok)
+        states.append(obs); frames.append(env.frame())
+    s_err = np.abs(np.array(states) - ep["states"]).max(axis=1)           # per step, worst of the 23 numbers
+    f_diff = np.abs(np.array(frames, dtype=np.int16) - ep["frames"].astype(np.int16))
+    bad = np.nonzero(s_err > 1e-5)[0]
+    return {"match": bool(s_err.max() <= 1e-5 and f_diff.max() == 0),
+            "state_max": float(s_err.max()), "first_bad_step": int(bad[0]) if len(bad) else None,
+            "frame0_px": float((f_diff[0] > 0).mean()), "frames_px": float((f_diff > 0).mean()),
+            "pixel_max": int(f_diff.max())}
 
 
 def main() -> None:
@@ -47,16 +58,20 @@ def main() -> None:
             assert all(ep[k].shape == s for k, s in shapes.items()) and ep["frames"].dtype == np.uint8, f
     print(f"all {len(index)} files load with the right shapes; seeds unique, no eval seeds, no held-out brains")
 
+    print(f"replaying with mujoco {mujoco.__version__}, MUJOCO_GL={os.environ.get('MUJOCO_GL', 'default')} "
+          f"(dataset recorded with mujoco 3.17.0 on Windows)")
     env = PusherEnv()
     picks = index.groupby("brain").sample(n=args.n, random_state=0)  # n random episodes of EVERY brain
     results = []
     for _, row in picks.iterrows():
-        ep = dict(np.load(out / row["file"]))
-        results.append(replay_matches(ep, int(row["seed"]), env))
-        print(f"{row['file']} ({row['brain']}, seed {row['seed']}, {row['split']}) | replay matches: {results[-1]}")
+        r = replay_diff(dict(np.load(out / row["file"])), int(row["seed"]), env)
+        results.append(r["match"])
+        print(f"{row['file']} ({row['brain']}, seed {row['seed']}) | match {r['match']} | state max diff {r['state_max']:.1e}"
+              f" (first >1e-5 at step {r['first_bad_step']}) | pixels differing: reset {r['frame0_px']:.2%},"
+              f" all frames {r['frames_px']:.2%}, max {r['pixel_max']}/255")
     env.close()
-    assert all(results), "some replays did not match the recording"
     print(f"replay check: {sum(results)}/{len(results)} episodes match exactly")
+    assert all(results), "some replays did not match the recording (see the differences above)"
 
     row = picks.iloc[0]
     frames = np.load(out / row["file"])["frames"]
