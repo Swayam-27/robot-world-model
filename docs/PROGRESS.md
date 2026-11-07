@@ -26,7 +26,7 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 ## Step 3 · Dataset (Nov 10 to 16)
 - [x] About 2,000 episodes recorded on training seeds only · 2,000 episodes, 209 MB, recorded on the laptop (`data/record.py`)
 - [x] 2 policies held out of the data entirely (optional, recommended) · sac_400k and sac_960k_n0.8
-- [ ] Split 90/10 by episode, uploaded as private Kaggle dataset · split done (1,800 / 200, balanced per brain); upload `outputs/robot-world-model-dataset.zip` pending
+- [x] Split 90/10 by episode, uploaded as private Kaggle dataset · 1,800 / 200 balanced per brain; on Kaggle as `swayam006/robot-world-model-dataset`, all 2,000 files load; replay with pinned mujoco 3.17.0 matches physics within 0.3 mm (renderer differs ~3.6% of pixels, see DECISIONS)
 - [x] Playback GIF confirms frames, actions and states line up (101 frames, 100 actions) · all 2,000 files checked; replay of 2 episodes per brain matches exactly (`data/playback.py`)
 
 ## Step 4 · State reader (Nov 10 to 16)
