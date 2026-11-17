@@ -1,0 +1,5 @@
+# Step 4d: ranking B = every pool brain in the REAL simulator, but seeing the state reader's estimates (eval/ranking_b.py).
+# Runs on the laptop (all rendering happens there). Unzip Kaggle's reader.zip into outputs/ first.
+pool_config: configs/pool.yaml   # same 10 brains and checkpoints as ranking A
+reader: outputs/reader/reader_best.pt
+scores_dir: outputs/scores       # ranking A (real_scores*.csv) is read from here; ranking B is written next to it
