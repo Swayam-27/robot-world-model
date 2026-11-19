@@ -1,0 +1,12 @@
+# Step 4d, reader v3 (2 frames + weight decay): ranking B = every pool brain in the REAL simulator, but seeing the state reader's estimates (eval/ranking_b.py).
+# Runs on the laptop (all rendering happens there). Unzip Kaggle's reader.zip into outputs/ first.
+pool_config: configs/pool.yaml   # same 10 brains and checkpoints as ranking A
+reader: outputs/reader_v3/reader_best.pt
+tag: _v3                         # outputs: ranking_b_v3.csv, reader_diagnosis_v3.csv (v1, v2 results are kept)
+scores_dir: outputs/scores       # ranking A (real_scores*.csv) is read from here; ranking B is written next to it
+
+# Diagnosis (eval/reader_diagnosis.py): which reader group breaks a brain? Runs on TRAINING seeds only (never tune on eval seeds).
+diagnosis:
+  brain: sac_960k                # the best brain in A, which fell furthest in B
+  n_seeds: 50                    # TRAIN_SEEDS[:50] = the pool-screening seeds (not in the dataset, not eval seeds)
+  out: outputs/scores/reader_diagnosis_v3.csv

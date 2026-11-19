@@ -81,6 +81,17 @@ I taught a neural network to imagine how a robot arm's world behaves just by wat
 | Rendering | Turning the 3D scene (arm, table, can) into a flat picture, like taking a photo of it |
 | Headless rendering | Rendering on a computer with no screen (like Kaggle): the picture is drawn into memory instead of a window. EGL uses the GPU driver, OSMesa does it in software on the CPU |
 | Resolution | How many pixels a picture has. 64x64 = 4,096 pixels x 3 colours = 12,288 numbers per frame. Small on purpose: the world model must draw every pixel, 100 times per dream |
+| State reader | The project's "eyes": a CNN that turns the last few camera frames into the 23 state numbers, because in the dream there are only pictures |
+| Frame stacking | Feeding the last few frames together (stacked on the colour axis) so the network can see motion, not just position |
+| Regression | Predicting numbers rather than picking a class; the reader is a regression network (no activation on its last layer) |
+| MSE (mean squared error) | The regression loss: the average of (guess - truth)². Big mistakes cost much more than small ones |
+| Normalisation | Rescaling each number by the training data's mean and std, so radians, metres and speeds all count equally in the loss |
+| Overfitting | Getting better on training data while getting worse on new data: memorising instead of learning. Seen when validation loss rises while training loss falls |
+| Early stopping | Stop training when validation loss hasn't improved for a few epochs, and keep the best checkpoint |
+| Weight decay | A brake on overfitting: every step shrinks all weights a little toward 0. AdamW = Adam with this built in |
+| Closed loop | The network's output decides the next input (reader -> brain -> action -> new picture -> reader). Small errors can snowball, unlike when testing on stored photos |
+| Ablation / diagnosis | Swap in one part at a time (here: one group of the reader's numbers) to see which part causes the damage |
+| W&B (Weights & Biases) | A website that logs training curves, images and tables for every run, so runs can be compared later |
 
 ## Ways robots learn to move (context for interviews)
 

@@ -170,6 +170,52 @@ Frame *t* plus action *t* gives frame *t+1*. That's why there's one more frame t
 
 **A real-life hiccup.** The laptop ran low on memory twice, and the recording was stopped. Because each episode is its own file, and saving is "write fully, then rename", we simply restarted and nothing was lost.
 
+## Chapter 4 · Giving the brains eyes (Step 4, in progress)
+
+**Why eyes?** Our brains were trained reading the 23 true numbers straight from the simulator, like a player who is told exactly where everything is. Inside the dream there are no numbers, only pictures. So we need **eyes**: a network that looks at pictures and writes down the 23 numbers. That's the **state reader** (`models/reader.py`).
+
+**The warm-up first (`warmup/faces_cnn_torch.py`).** Before building the eyes, we rebuilt the old faces CNN (real vs AI faces, from Keras) in PyTorch. It was a practice run for the PyTorch training loop: `zero_grad -> forward -> loss -> backward -> step`. It reached 85.8% validation accuracy.
+
+**How the eyes are built.** We used the same conv blocks as the faces CNN, with **one big difference**. The faces CNN squashed each feature map to one average (global pooling) because "is this face fake?" doesn't depend on *where* things are. The reader must say *where* the can is, so it **flattens** the 8×8 grid and keeps every position.
+
+**Why 2 pictures, not 1.** One photo shows where the arm is, but not how fast it's moving. Two photos in a row are a tiny video: the difference between them shows the speed. That's **frame stacking**.
+
+**Grading the eyes: regression.** The reader doesn't pick a class; it outputs numbers, so the loss is **MSE** (mean squared error). Joint angles are in radians and positions are in metres, so we **normalise** every number first (subtract the training mean, divide by the training std). That way no single number shouts louder than the rest.
+
+**Report card v1** (validation photos): can off by 1.8 cm on average, joint speeds off by 0.53 rad/s. That sounds OK... until a brain has to *play* with those eyes.
+
+### Ranking B: the same exam, but wearing the reader's eyes
+
+Ranking B (`eval/ranking_b.py`) is the same exam as ranking A, with the **same real simulator** and the **same 50 sealed seeds**. Only one thing changes: the brain no longer gets the true numbers. Each step it gets the **reader's guess** from the camera picture. The score is still the *true* final distance.
+
+So ranking B measures one thing only: **how much do imperfect eyes cost?** If B matched A, the reader would be good enough for the dream.
+
+**What happened:** the brains fell apart. The best brain went from 5.8 cm to 20.4 cm, and every brain got 0% success. A 2 cm mistake sounds small, but it repeats 100 times, and each wrong move puts the arm somewhere the reader is even less sure about. The errors **snowball**, just like drift in a dream.
+
+### The diagnosis: which numbers break the brain? (`eval/reader_diagnosis.py`)
+
+Like a doctor testing one thing at a time, we let the brain see the **true** numbers except **one group**, which comes from the reader. This ran on **practice seeds**, never the exam ones, because we choose a fix from it. That kind of test is called an **ablation**.
+
+| Group from the reader | v1: worse by |
+| --- | --- |
+| Joint speeds | +4.4 cm |
+| Can position | +2.9 cm |
+| Joint angles | +2.7 cm |
+| Fingertip | +0.9 cm |
+| Everything | +13.0 cm |
+
+No single culprit: every group hurts a bit, and together they hurt far more than the sum of the parts.
+
+### Fix attempt 1: 3 pictures (v2). It got worse.
+
+Speeds hurt most, so v2 got 3 frames instead of 2: a longer video. Result: speeds improved a little (+3.3 cm), but angles (+6.4) and the can (+5.0) got clearly worse, and "everything" went to **+17.2 cm**. The surprise was that the can's error on stored photos was *lower* than v1's. **Lesson: a better report card on photos doesn't mean better eyes while playing.** We rejected v2.
+
+(Ranking B's Spearman rose from 0.745 to 0.855, but every neighbouring pair was a near-tie. When everyone crawls over the finish line together, the order is luck.)
+
+### Fix attempt 2: stop memorising (v3, next)
+
+Both readers stopped getting better on validation photos after 4–6 epochs, while training loss kept falling. That's **overfitting**: like a student who memorises last year's paper instead of learning the subject. v3 is v1 plus **weight decay**, a gentle pull of every weight toward zero so the network can't build the huge, finely tuned weights that memorising needs. One change, as the rules say.
+
 ---
 
 ## The lab rules, and why they exist
@@ -186,7 +232,6 @@ Frame *t* plus action *t* gives frame *t+1*. That's why there's one more frame t
 
 ## Coming chapters (one line each)
 
-- **Step 4 · The eyes:** a CNN learns to read the 23 numbers from pictures, because inside the dream there are only pictures.
 - **Step 5 · The imagination:** a diffusion model learns "given the last 4 frames and the action, draw the next frame".
 - **Step 6 · Dream for 100 steps:** feed its own drawings back in. The fight here is against **drift** (small errors snowballing).
 - **Step 7 · Brains play in the dream:** dream frame, then eyes, then brain, then action, then the next dream frame. That gives **ranking C**.

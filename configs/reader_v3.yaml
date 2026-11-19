@@ -1,0 +1,18 @@
+# Step 4b: train the state reader (models/train_reader.py). Runs on a Kaggle GPU from the stored dataset.
+# Reader v3: identical to v1 (configs/reader.yaml) except weight_decay 0.05 (DECISIONS 2026-11-19): v1 and v2 overfit after 4-6 epochs.
+data_dir: outputs/dataset        # override with --data-dir on Kaggle (/kaggle/input/...)
+out_dir: outputs/reader_v3
+seed: 0
+n_frames: 2                      # frames t-1, t stacked (6 input channels)
+std_floor: 0.01                  # goal never moves (std ~0) and can height barely does: don't divide by ~0
+
+batch_size: 256
+lr: 0.001
+weight_decay: 0.05               # AdamW decoupled weight decay (v1/v2: 0 = plain Adam). The ONLY change from v1
+epochs: 20
+patience: 5                      # early stopping on validation loss
+num_workers: 2                   # data-loading processes (use 0 on Windows)
+
+wandb:
+  project: robot-world-model
+  mode: online                   # online | offline | disabled (falls back to offline if no WANDB_API_KEY)

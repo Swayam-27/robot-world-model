@@ -134,7 +134,9 @@ def main() -> None:
     run = wandb.init(project=cfg["wandb"]["project"], job_type="reader", config={**cfg, "n_params": n_params}, mode=mode)
 
     loss_fn = nn.MSELoss()                                    # on NORMALISED states, so every number counts equally
-    optimizer = torch.optim.Adam(model.parameters(), lr=cfg["lr"])
+    # AdamW = Adam + weight decay: every step shrinks all weights a little toward 0, so the network can't grow the
+    # large, finely tuned weights it needs to memorise training photos. weight_decay 0 (v1, v2) is exactly plain Adam.
+    optimizer = torch.optim.AdamW(model.parameters(), lr=cfg["lr"], weight_decay=cfg.get("weight_decay", 0.0))
     best_val, bad_epochs, log = float("inf"), 0, []
     ckpt_path = out / "reader_best.pt"
     for epoch in range(1, epochs + 1):
