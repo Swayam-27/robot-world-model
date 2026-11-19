@@ -1,13 +1,13 @@
 """Step 4d: ranking B. Every brain plays the 50 eval seeds in the REAL simulator, but sees only the state reader's estimates.
 
-Run:  python -m eval.ranking_b --config configs/ranking_b.yaml [--n-seeds N]
-Loop per step:  real sim -> frame -> reader(previous frame, frame) -> 23 estimated numbers -> brain -> action -> real sim.
+Run:  python -m eval.ranking_b --config configs/ranking_b.yaml [--n-seeds N]     (reader v2: configs/ranking_b_v2.yaml)
+Loop per step:  real sim -> frame -> reader(last few frames) -> 23 estimated numbers -> brain -> action -> real sim.
 The score is still the TRUE final object-goal distance, so B vs A measures what seeing through the camera costs.
 Sanity checks:
   1. plumbing: with a perfect reader (hands over the true state) this loop reproduces ranking A's numbers exactly;
   2. the brain really receives the reader's numbers (they differ from the true state);
   3. rerun of one brain gives identical numbers (deterministic, hard rule 4).
-Saves ranking_b.csv and ranking_b_per_seed.csv in scores_dir and prints Spearman(A, B).
+Saves ranking_b{tag}.csv and ranking_b{tag}_per_seed.csv in scores_dir and prints Spearman(A, B).
 """
 import argparse
 from pathlib import Path
@@ -19,7 +19,7 @@ import yaml
 
 from envs.constants import EVAL_SEEDS, OBJECT_XYZ, SUCCESS_DISTANCE
 from envs.pusher import PusherEnv, object_goal_distance
-from models.reader import ReaderBundle
+from models.reader import FrameWindow, ReaderBundle
 from policies.pool import build_pool, rank_table
 from policies.score import spearman
 
@@ -31,13 +31,14 @@ def play_with_reader(policy, env: PusherEnv, reader: ReaderBundle | None, seed: 
     """
     true_obs, done = env.reset(seed), False
     policy.reset(seed)
-    prev = cur = env.frame()                                  # right after reset there is one frame: use it twice
+    window = FrameWindow(reader.n_frames if reader else 1)
+    frames = window.reset(env.frame())                        # right after reset there is one frame: it fills the window
     obj_err = []
     while not done:
-        seen = true_obs if reader is None else reader.read(prev, cur)
+        seen = true_obs if reader is None else reader.read(frames)
         obj_err.append(np.linalg.norm(seen[OBJECT_XYZ] - true_obs[OBJECT_XYZ]) * 100)
         true_obs, _, done = env.step(policy.act(seen))
-        prev, cur = cur, env.frame()
+        frames = window.push(env.frame())
     return object_goal_distance(true_obs), float(np.mean(obj_err))
 
 
@@ -49,7 +50,7 @@ def main() -> None:
     cfg = yaml.safe_load(open(args.config))
     pool_cfg = yaml.safe_load(open(cfg["pool_config"]))
     seeds = EVAL_SEEDS[: args.n_seeds]
-    out = Path(cfg["scores_dir"])
+    out, tag = Path(cfg["scores_dir"]), cfg.get("tag", "")
     torch.set_num_threads(1)                                  # one small image at a time: threads only add overhead
 
     pool = build_pool(pool_cfg["pool"], Path(pool_cfg["run"]))
@@ -66,7 +67,7 @@ def main() -> None:
 
     # Check 2: the brain really gets the reader's numbers, not the true state.
     env.reset(seeds[0]); f0 = env.frame()
-    est = reader.read(f0, f0)
+    est = reader.read([f0] * reader.n_frames)
     assert not np.allclose(est, env.state()), "reader output equals the true state: is the reader wired in?"
     print(f"check 2 OK: reader estimate differs from the true state (object off by "
           f"{np.linalg.norm(est[OBJECT_XYZ] - env.state()[OBJECT_XYZ]) * 100:.2f} cm at reset)")
@@ -91,10 +92,10 @@ def main() -> None:
         table["rank_A"] = [int(a.loc[n, "rank"]) for n in table["name"]]
         table["end_mean_A_m"] = [a.loc[n, "end_mean_m"] for n in table["name"]]
         table["change_cm"] = (table["end_mean_m"] - table["end_mean_A_m"]) * 100
-        table.to_csv(out / "ranking_b.csv", index=False)
+        table.to_csv(out / f"ranking_b{tag}.csv", index=False)
         pd.DataFrame([{"name": n, "seed": s, "final_distance_m": d} for n in ends for s, d in zip(seeds, ends[n])]
-                     ).to_csv(out / "ranking_b_per_seed.csv", index=False)
-        print(f"saved {out / 'ranking_b.csv'}")
+                     ).to_csv(out / f"ranking_b{tag}_per_seed.csv", index=False)
+        print(f"saved {out / f'ranking_b{tag}.csv'} (reader {cfg['reader']}, {reader.n_frames} frames)")
     else:
         print(f"quick test on {len(seeds)} seeds: nothing saved, no comparison with A")
     print(table.to_string(index=False, float_format=lambda x: f"{x:.3f}"))

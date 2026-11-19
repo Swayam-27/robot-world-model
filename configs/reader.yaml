@@ -1,7 +1,9 @@
 # Step 4b: train the state reader (models/train_reader.py). Runs on a Kaggle GPU from the stored dataset.
+# Reader v1: 2 stacked frames. v2 (configs/reader_v2.yaml) changes ONLY n_frames.
 data_dir: outputs/dataset        # override with --data-dir on Kaggle (/kaggle/input/...)
 out_dir: outputs/reader
 seed: 0
+n_frames: 2                      # frames t-1, t stacked (6 input channels)
 std_floor: 0.01                  # goal never moves (std ~0) and can height barely does: don't divide by ~0
 
 batch_size: 256

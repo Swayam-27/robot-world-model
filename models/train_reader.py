@@ -1,8 +1,8 @@
 """Step 4b: train the state reader on the recorded episodes, keep the best checkpoint, report errors per group.
 
 Run:  python -m models.train_reader --config configs/reader.yaml [--data-dir DIR] [--limit N]
-One example = (frame t-1, frame t) stacked -> state t, for t = 0..100 of every episode (at t = 0 frame 0 is used twice,
-exactly what the reader will see right after a reset). Train/val split comes from episodes.csv (split by episode, never by frame).
+One example = the last n_frames frames up to t stacked -> state t, for t = 0..100 of every episode (before the episode
+has enough frames, frame 0 repeats, exactly what the reader will see right after a reset). Train/val split comes from episodes.csv (split by episode, never by frame).
 Sanity checks: parameter count, loss per epoch, per-group validation errors in real units, predicted-vs-true plot.
 """
 import argparse
@@ -22,7 +22,7 @@ from torch.utils.data import DataLoader, Dataset  # noqa: E402
 
 from envs.constants import (FINGERTIP_XYZ, GOAL_XYZ, JOINT_ANGLES, JOINT_VELOCITIES, OBJECT_XYZ,  # noqa: E402
                             OBS_DIM, SUCCESS_DISTANCE)
-from models.reader import Reader, stack_pair  # noqa: E402
+from models.reader import Reader, stack_frames  # noqa: E402
 
 GROUPS = {"joint_angles": JOINT_ANGLES, "joint_velocities": JOINT_VELOCITIES,
           "fingertip": FINGERTIP_XYZ, "object": OBJECT_XYZ, "goal": GOAL_XYZ}
@@ -40,10 +40,10 @@ def load_split(data_dir: Path, split: str, limit: int | None) -> tuple[np.ndarra
 
 
 class PairDataset(Dataset):
-    """Item i = episode i // 101, step t = i % 101  ->  (6, 64, 64) uint8 input, normalised (23,) target."""
+    """Item i = episode i // 101, step t = i % 101  ->  (3 * n_frames, 64, 64) uint8 input, normalised (23,) target."""
 
-    def __init__(self, frames: np.ndarray, states: np.ndarray, mean: np.ndarray, std: np.ndarray) -> None:
-        self.frames, self.targets = frames, (states - mean) / std
+    def __init__(self, frames: np.ndarray, states: np.ndarray, mean: np.ndarray, std: np.ndarray, n_frames: int) -> None:
+        self.frames, self.targets, self.n_frames = frames, (states - mean) / std, n_frames
         self.steps = frames.shape[1]
 
     def __len__(self) -> int:
@@ -51,7 +51,7 @@ class PairDataset(Dataset):
 
     def __getitem__(self, i: int) -> tuple[torch.Tensor, torch.Tensor]:
         ep, t = divmod(i, self.steps)
-        x = stack_pair(self.frames[ep, max(t - 1, 0)], self.frames[ep, t])
+        x = stack_frames([self.frames[ep, max(t - k, 0)] for k in range(self.n_frames - 1, -1, -1)])  # oldest first
         return torch.from_numpy(x), torch.from_numpy(self.targets[ep, t])
 
 
@@ -117,11 +117,11 @@ def main() -> None:
 
     workers = 0 if os.name == "nt" else cfg["num_workers"]                             # Windows: worker processes copy the data
     kw = dict(batch_size=cfg["batch_size"], num_workers=workers, pin_memory=device == "cuda")
-    train_loader = DataLoader(PairDataset(train_f, train_s, mean, std), shuffle=True, **kw)
-    val_loader = DataLoader(PairDataset(val_f, val_s, mean, std), **kw)
+    train_loader = DataLoader(PairDataset(train_f, train_s, mean, std, cfg["n_frames"]), shuffle=True, **kw)
+    val_loader = DataLoader(PairDataset(val_f, val_s, mean, std, cfg["n_frames"]), **kw)
     print(f"{len(train_loader.dataset):,} training pairs | {len(val_loader.dataset):,} validation pairs")
 
-    model = Reader(OBS_DIM).to(device)
+    model = Reader(OBS_DIM, cfg["n_frames"]).to(device)
     x0, _ = next(iter(val_loader))
     assert model(x0.to(device)).shape == (len(x0), OBS_DIM)                            # sanity check 1
     n_params = sum(p.numel() for p in model.parameters())
@@ -149,7 +149,7 @@ def main() -> None:
               f" | fingertip {errs['fingertip']:.2f} cm | velocities {errs['joint_velocities']:.3f} rad/s")
         if val_loss < best_val:
             best_val, bad_epochs = val_loss, 0
-            torch.save({"model": model.state_dict(), "mean": mean, "std": std, "n_out": OBS_DIM,
+            torch.save({"model": model.state_dict(), "mean": mean, "std": std, "n_out": OBS_DIM, "n_frames": cfg["n_frames"],
                         "epoch": epoch, "val_loss": val_loss, "config": cfg}, ckpt_path)
         else:
             bad_epochs += 1

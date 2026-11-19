@@ -30,8 +30,8 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 - [x] Playback GIF confirms frames, actions and states line up (101 frames, 100 actions) · all 2,000 files checked; replay of 2 episodes per brain matches exactly (`data/playback.py`)
 
 ## Step 4 · State reader (Nov 10 to 16)
-- [ ] Reader trained; per-group validation errors recorded
-- [ ] Ranking B computed (policies on reader estimates in the real sim)
+- [x] Reader trained; per-group validation errors recorded · v1 (2 frames, Kaggle T4, best epoch 6 of 11, overfits after ~epoch 3): mean error object 1.79 cm (p95 4.45), goal 0.006 cm, fingertip 3.89 cm, joint angles 9.4 deg, joint velocities 0.53 rad/s (`outputs/reader/val_errors.csv`, W&B run light-moon-1)
+- [ ] Ranking B computed (policies on reader estimates in the real sim) · v1 done but **policies fall apart**: sac_960k 5.8 -> 20.4 cm, every brain 0% success, Spearman(A, B) 0.745 with 8 of 9 neighbour gaps near-ties (`outputs/scores/ranking_b.csv`). Diagnosis on 50 training seeds (sac_960k, one group from the reader at a time): velocities +4.4 cm, object +2.9, joint angles +2.7, fingertip +0.9, all together +13.0 -> no single culprit, errors add up; reader v2 needed
 
 ## Exams · Nov 17 to 30 · pause
 
