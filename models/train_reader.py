@@ -1,6 +1,7 @@
 """Step 4b: train the state reader on the recorded episodes, keep the best checkpoint, report errors per group.
 
-Run:  python -m models.train_reader --config configs/reader.yaml [--data-dir DIR] [--limit N]
+Run:  python -m models.train_reader --config configs/reader.yaml [--data-dir DIR] [--extra-data-dir DIR] [--limit N]
+Extra data folders (config extra_data_dirs, reader v4: the DAgger episodes) are joined split by split.
 One example = the last n_frames frames up to t stacked -> state t, for t = 0..100 of every episode (before the episode
 has enough frames, frame 0 repeats, exactly what the reader will see right after a reset). Train/val split comes from episodes.csv (split by episode, never by frame).
 Sanity checks: parameter count, loss per epoch, per-group validation errors in real units, predicted-vs-true plot.
@@ -98,6 +99,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True)
     parser.add_argument("--data-dir", help="override data_dir, e.g. the dataset under /kaggle/input")
+    parser.add_argument("--extra-data-dir", action="append", help="override extra_data_dirs (repeatable)")
     parser.add_argument("--limit", type=int, help="episodes per split, for a quick test")
     parser.add_argument("--epochs", type=int, help="override epochs, for a quick test")
     parser.add_argument("--wandb-mode", choices=["online", "offline", "disabled"], help="override wandb.mode")
@@ -109,8 +111,12 @@ def main() -> None:
     torch.manual_seed(cfg["seed"])
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    train_f, train_s = load_split(data_dir, "train", args.limit)
-    val_f, val_s = load_split(data_dir, "val", args.limit)
+    extra = [Path(d) for d in (args.extra_data_dir or cfg.get("extra_data_dirs", []))]
+    parts = {split: [load_split(d, split, args.limit) for d in [data_dir, *extra]] for split in ("train", "val")}
+    train_f, train_s = (np.concatenate(a) for a in zip(*parts["train"]))   # each folder keeps its own episode split
+    val_f, val_s = (np.concatenate(a) for a in zip(*parts["val"]))
+    if extra:
+        print("data folders:", ", ".join(f"{d} ({len(tr[0])} train / {len(va[0])} val)" for d, tr, va in zip([data_dir, *extra], parts["train"], parts["val"])))
     mean = train_s.reshape(-1, OBS_DIM).mean(0)                                        # TRAINING data only
     std = np.maximum(train_s.reshape(-1, OBS_DIM).std(0), cfg["std_floor"])
     print(f"train {len(train_f)} episodes | val {len(val_f)} episodes | device {device}")
