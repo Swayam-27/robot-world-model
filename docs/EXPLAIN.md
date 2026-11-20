@@ -216,6 +216,12 @@ Speeds hurt most, so v2 got 3 frames instead of 2: a longer video. Result: speed
 
 Both readers stopped getting better on validation photos after 4–6 epochs, while training loss kept falling. That's **overfitting**: like a student who memorises last year's paper instead of learning the subject. v3 is v1 plus **weight decay**, a gentle pull of every weight toward zero so the network can't build the huge, finely tuned weights that memorising needs. One change, as the rules say.
 
+**Result:** v3 stopped getting *worse* on validation, but it didn't get *better*, and in closed loop it still failed (+16.2 cm). Speeds were fixed, but angles and the can broke instead. Three readers had the same report card and failed in three different ways.
+
+### The real problem: the eyes never practised on their own mess (v4, planned)
+
+Imagine learning to drive only by watching a perfect driver. You never see what the road looks like when the car is drifting off it. The first time *you* drive and drift a little, you're lost, so you drift more. Our reader learned only from brains that saw the true numbers, so it never saw the strange poses its own mistakes cause. The fix is called **DAgger**: let the brains play *through the reader*, record what actually happens (with the true numbers saved), and train the reader on those pictures too.
+
 ---
 
 ## The lab rules, and why they exist

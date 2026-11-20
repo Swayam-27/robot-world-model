@@ -33,7 +33,8 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 - [x] Reader trained; per-group validation errors recorded · v1 (2 frames, Kaggle T4, best epoch 6 of 11, overfits after ~epoch 3): mean error object 1.79 cm (p95 4.45), goal 0.006 cm, fingertip 3.89 cm, joint angles 9.4 deg, joint velocities 0.53 rad/s (`outputs/reader/val_errors.csv`, W&B run light-moon-1)
 - [ ] Ranking B computed (policies on reader estimates in the real sim) · v1 done but **policies fall apart**: sac_960k 5.8 -> 20.4 cm, every brain 0% success, Spearman(A, B) 0.745 with 8 of 9 neighbour gaps near-ties (`outputs/scores/ranking_b.csv`). Diagnosis on 50 training seeds (sac_960k, one group from the reader at a time): velocities +4.4 cm, object +2.9, joint angles +2.7, fingertip +0.9, all together +13.0 -> no single culprit, errors add up; reader v2 needed
   - v2 (3 frames, W&B vital-surf-2): no better on validation (velocities 0.54 rad/s, best epoch 4) and **worse** in closed loop: diagnosis all-from-reader +17.2 cm (v1 +13.0); ranking B v2 sac_960k 21.4 cm, Spearman 0.855 but all near-ties (`ranking_b_v2.csv`). Rejected, v1 stays the base
-  - v3 = v1 + weight decay 0.05 (`configs/reader_v3.yaml`): to train on Kaggle, then diagnosis and ranking B v3 on the laptop
+  - v3 = v1 + weight decay 0.05 (W&B rural-disco-3): val loss 0.2455, speeds fixed in closed loop but angles/can worse; diagnosis all-from-reader +16.2 cm; ranking B v3 good brains 17.7-22.4 cm, Spearman 0.855, near-ties (`ranking_b_v3.csv`). Not good enough
+  - Next: v4 = DAgger-style data (episodes where brains play through reader v1, true state saved), see DECISIONS 2026-11-20
 
 ## Exams · Nov 17 to 30 · pause
 

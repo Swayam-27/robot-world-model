@@ -91,6 +91,8 @@ I taught a neural network to imagine how a robot arm's world behaves just by wat
 | Weight decay | A brake on overfitting: every step shrinks all weights a little toward 0. AdamW = Adam with this built in |
 | Closed loop | The network's output decides the next input (reader -> brain -> action -> new picture -> reader). Small errors can snowball, unlike when testing on stored photos |
 | Ablation / diagnosis | Swap in one part at a time (here: one group of the reader's numbers) to see which part causes the damage |
+| Distribution shift | Testing a model on situations unlike its training data. Here: the reader trained on poses from brains seeing the true state, but in closed loop its own errors create new poses |
+| DAgger | The fix for that: run the system with the model in charge, record the situations it causes along with the correct answers, add them to training, repeat. From imitation learning (Ross et al., 2011) |
 | W&B (Weights & Biases) | A website that logs training curves, images and tables for every run, so runs can be compared later |
 
 ## Ways robots learn to move (context for interviews)
