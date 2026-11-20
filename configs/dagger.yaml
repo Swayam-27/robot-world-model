@@ -1,0 +1,17 @@
+# Step 4, reader v4 data (DAgger round 1, DECISIONS 2026-11-20): brains play through reader v1, the TRUE state is saved.
+# Run (laptop, all rendering happens there):  python -m data.record_dagger --config configs/dagger.yaml
+# Check:                                      python -m data.playback --config configs/dagger.yaml
+pool_config: configs/pool.yaml     # brain definitions + checkpoint folder
+reader: outputs/reader/reader_best.pt   # reader v1: the eyes whose own mistakes we want to see (best closed-loop reader so far)
+held_out: [sac_400k, sac_960k_n0.8]  # same as the Step 3 dataset: never recorded
+episodes:                          # 1,050 episodes; no random brain: it ignores what it sees, so the reader changes nothing
+  sac_960k: 150
+  sac_600k: 150
+  sac_260k: 150
+  sac_960k_n0.6: 150
+  sac_960k_n1.0: 150
+  sac_960k_n1.3: 150
+  sac_100k: 150
+first_seed_index: 2100             # TRAIN_SEEDS[2100...]: the Step 3 dataset used [100, 2100), so every start position is new
+val_fraction: 0.1                  # last 10% of each brain's episodes -> validation (split by episode)
+out_dir: outputs/dataset_dagger    # same file format as outputs/dataset (ep_XXXXX.npz + episodes.csv)
