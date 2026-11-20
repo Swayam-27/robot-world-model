@@ -218,9 +218,15 @@ Both readers stopped getting better on validation photos after 4–6 epochs, whi
 
 **Result:** v3 stopped getting *worse* on validation, but it didn't get *better*, and in closed loop it still failed (+16.2 cm). Speeds were fixed, but angles and the can broke instead. Three readers had the same report card and failed in three different ways.
 
-### The real problem: the eyes never practised on their own mess (v4, planned)
+### The real problem: the eyes never practised on their own mess (v4)
 
 Imagine learning to drive only by watching a perfect driver. You never see what the road looks like when the car is drifting off it. The first time *you* drive and drift a little, you're lost, so you drift more. Our reader learned only from brains that saw the true numbers, so it never saw the strange poses its own mistakes cause. The fix is called **DAgger**: let the brains play *through the reader*, record what actually happens (with the true numbers saved), and train the reader on those pictures too.
+
+**It worked.** We recorded 1,050 episodes of brains playing through reader v1 (`data/record_dagger.py`) and retrained the reader on old + new pictures. In the training-seed diagnosis the can's damage fell from +2.9 cm to +0.7 cm. In ranking B, **every brain landed in exactly its ranking-A place: Spearman = 1.000**, including the two brains no camera ever filmed. 
+
+The honest small print: half of the neighbouring gaps are still near-ties, so a perfect order is partly luck, and the brains still score much worse than with true numbers (the best brain ends at 14.6 cm instead of 5.8). The eyes keep the *order* right but blur the *scores* together, and for our project the order is what counts.
+
+**Lesson for interviews:** three tweaks to *how* the reader trained just moved the error around. Changing *what* it trained on, so it saw the situations it causes itself, fixed the ranking.
 
 ---
 
