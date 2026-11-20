@@ -10,3 +10,10 @@ Small result files copied from `outputs/` (which is gitignored) so the numbers b
 | `real_scores.csv` | `policies/score.py` | **Ranking A**: the 10 brains on the 50 eval seeds (mean distance, rank, success rate) |
 | `real_scores_per_seed.csv` | `policies/score.py` | Every brain x every eval seed |
 | `episodes.csv` | `data/record.py` | Index of the 2,000-episode dataset (brain, seed, split, final distance) |
+| `episodes_dagger.csv` | `data/record_dagger.py` | Index of the 1,050 DAgger episodes (brains playing through reader v1; brain, seed, split, final distance, reader can error) |
+| `reader_v{1..4}_train_log.csv` | `models/train_reader.py` | Train/val loss and per-group errors per epoch for each state reader |
+| `reader_v{1..4}_val_errors.csv` | `models/train_reader.py` | Best checkpoint's validation errors per group, in real units |
+| `reader_v4_pred_vs_true.png` | `models/train_reader.py` | Reader v4 predictions vs truth on validation (can x, can y, joint 0 speed) |
+| `reader_diagnosis{,_v2,_v3,_v4}.csv` | `eval/reader_diagnosis.py` | sac_960k on 50 TRAINING seeds, one group of the reader's numbers at a time (v1 has no suffix) |
+| `ranking_b{,_v2,_v3,_v4}.csv` | `eval/ranking_b.py` | **Ranking B** per reader: the 10 brains on the 50 eval seeds seeing the reader's estimates, with rank A and change. v4 (DAgger): Spearman(A, B) = 1.000 |
+| `ranking_b{,_v2,_v3,_v4}_per_seed.csv` | `eval/ranking_b.py` | Every brain x every eval seed, per reader |
