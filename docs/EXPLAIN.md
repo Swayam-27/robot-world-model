@@ -317,6 +317,8 @@ In training, the 4 past frames are always **real** and perfect. When dreaming, t
 
 **Why.** It's the same snowball as the reader in chapter 4. Each step is only a little wrong, but the next step is drawn on top of that little error. In training, the 4 past pictures were always perfect; in the dream they are the model's own slightly-off drawings.
 
+**Does it obey the controls?** A world model could cheat: draw an arm that moves *plausibly* but ignores what the brain asked for. To check, we took the same start picture and gave it a *different* list of actions, both in the dream and in the real simulator. At frame 10 the dreamed arm moved 6.6 cm away from where it went before, the real arm 7.2 cm, and in the same direction in all 8 episodes. So the model does listen to the actions. Its problem is the snowball: after ~20 steps it has wandered so far that the answer no longer lines up.
+
 **What we try next.** Prove whether noise augmentation (chapter 5's drift fix) is helping, by training the same model without it (an **ablation**). Then check whether the dream really obeys the actions, and try telling the model at dream time that its past pictures are a bit noisy.
 
 | Piece | Real term | Where |
