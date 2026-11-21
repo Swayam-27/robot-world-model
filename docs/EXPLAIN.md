@@ -293,10 +293,13 @@ In training, the 4 past frames are always **real** and perfect. When dreaming, t
 | The amount of damage | Noise level σ | `WorldModel.loss` (log-normal σ in training) |
 | The hints | Conditioning: 4 frames + 4 actions + σ + context-noise level | `InnerModel.forward`: frames as channels, the rest summed into one vector |
 | Practice examples | 4 frames + 4 actions -> next frame | `models/world_model_data.py` |
+| Practice and grading | Training loop; error on the **moving** pixels vs "just copy the last frame" | `models/train_world_model.py` (Kaggle: `notebooks/step5_train_world_model.ipynb`) |
 | Drawing from noise | Sampling, 3 Euler steps | `WorldModel.sample` |
 | The noise recipe | EDM, adapted from DIAMOND | github.com/eloialonso/diamond |
 
 **What we changed from DIAMOND (only two things).** Atari has buttons, so DIAMOND looks actions up in a table; our arm has 7 torques, so a small MLP turns the last 4 actions (28 numbers) into the hint vector. And DIAMOND never noises its past frames; we add GameNGen's noise augmentation (up to 0.7) and tell the model how much was added, to fight drift in Step 6.
+
+**How we grade it.** Almost the whole picture is still background, so "just copy the last frame" already gets 99% of pixels right. That makes the whole-image error useless: a model that never moves the arm would look perfect. So we measure the error only on the pixels that actually change (about 1.3% of them: the arm and the can), and the model has to beat the copy-the-last-frame guess there.
 
 **A neat EDM trick.** The network never draws the clean frame directly. It draws a *correction* to the noisy frame. When the noise is light, the noisy frame is already almost right, so the network only has to fix a little; when it's heavy, it draws almost everything. The formulas `c_skip`, `c_out` and `c_in` set that balance from σ.
 

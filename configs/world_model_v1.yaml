@@ -19,18 +19,26 @@ diffusion:                 # EDM settings, all DIAMOND's
   sigma_offset_noise: 0.3
   sigma_distribution: {loc: -0.4, scale: 1.2, sigma_min: 0.002, sigma_max: 20}   # log-normal training noise levels
 
-training:
+training:                  # models/train_world_model.py
+  out_dir: outputs/world_model_v1
   batch_size: 64
-  lr: 1.0e-4
-  optimizer: adamw
-  mixed_precision: true
+  lr: 1.0e-4               # AdamW; lr, weight decay, warmup and clipping are DIAMOND's
+  weight_decay: 0.01
+  lr_warmup_steps: 100
+  max_grad_norm: 1.0
+  mixed_precision: true    # fp16 on the T4
   noise_augmentation_max: 0.7   # GameNGen setting; set 0.0 for the ablation
+  max_steps: 200000        # whichever comes first: steps or hours (Kaggle sessions end at 12 h)
+  max_hours: 3             # first run: short, to measure speed and look at the samples
   checkpoint_every_minutes: 30
-  log_samples_every_steps: 2000
+  log_every: 100
+  eval_every: 2000         # val loss + one-step samples + image grid
+  val_examples: 256        # fixed validation examples used at every eval
+  num_workers: 4
 
 sampling:
   denoising_steps: 3       # DIAMOND's setting; compare 3-5 later
 
 logging:
-  backend: wandb
   project: robot-world-model
+  wandb_mode: online
