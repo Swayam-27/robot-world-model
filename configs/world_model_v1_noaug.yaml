@@ -1,0 +1,45 @@
+# Step 6 ablation: world model v1 WITHOUT context noise augmentation. Only change vs world_model_v1.yaml:
+# noise_augmentation_max 0.7 -> 0.0 (and the name/out_dir). Its dream drift is compared with v1's (BUILD_GUIDE Step 6).
+# Data check (laptop):  python -m models.world_model_data --config configs/world_model_v1.yaml --limit 3
+name: world_model_v1_noaug
+seed: 0
+
+data:
+  data_dir: outputs/dataset                  # Step 3 episodes (Kaggle: --data-dir /kaggle/input/...)
+  extra_data_dirs: [outputs/dataset_dagger]  # DAgger episodes: real physics too, more varied arm poses
+  context_frames: 4                          # = CONTEXT_FRAMES in envs/constants.py (asserted)
+
+model:                     # DIAMOND's Atari U-Net (models/diamond_blocks.py); actions: last 4 x 7 -> MLP
+  cond_channels: 256       # size of the hint vector (noise level + context-noise level + actions)
+  depths: [2, 2, 2, 2]     # residual blocks per U-Net level
+  channels: [64, 64, 64, 64]
+  attn_depths: [0, 0, 0, 0]
+
+diffusion:                 # EDM settings, all DIAMOND's
+  sigma_data: 0.5
+  sigma_offset_noise: 0.3
+  sigma_distribution: {loc: -0.4, scale: 1.2, sigma_min: 0.002, sigma_max: 20}   # log-normal training noise levels
+
+training:                  # models/train_world_model.py
+  out_dir: outputs/world_model_v1_noaug
+  batch_size: 64
+  lr: 1.0e-4               # AdamW; lr, weight decay, warmup and clipping are DIAMOND's
+  weight_decay: 0.01
+  lr_warmup_steps: 100
+  max_grad_norm: 1.0
+  mixed_precision: true    # fp16 on the T4
+  noise_augmentation_max: 0.0   # THE ablation (v1: 0.7)
+  max_steps: 200000        # whichever comes first: steps or hours (Kaggle sessions end at 12 h)
+  max_hours: 3             # first run: short, to measure speed and look at the samples
+  checkpoint_every_minutes: 30
+  log_every: 100
+  eval_every: 2000         # val loss + one-step samples + image grid
+  val_examples: 256        # fixed validation examples used at every eval
+  num_workers: 4
+
+sampling:
+  denoising_steps: 3       # DIAMOND's setting; compare 3-5 later
+
+logging:
+  project: robot-world-model
+  wandb_mode: online

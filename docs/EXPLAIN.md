@@ -309,6 +309,24 @@ In training, the 4 past frames are always **real** and perfect. When dreaming, t
 
 ---
 
+## Chapter 6 · The long dream (Step 6, in progress)
+
+**The job.** Give the world model one real picture straight after a reset, then let it draw the next 100 pictures, each one from its own earlier drawings, while we replay the actions the brain really took. If the world model were perfect, the dream would match the real recording frame for frame.
+
+**First try (8 episodes).** The good news: the pictures stay sharp all the way to frame 100. Blur, the usual failure, didn't happen. The bad news: the dream slowly wanders off. To measure *how far*, we used our state reader as a ruler. It reads the fingertip and the can off any picture, real or dreamed, and we compare that with where they really were. On real pictures the ruler is off by about 1 cm (its own error). On dream pictures the fingertip is 5 cm off by frame 10 and 38 cm by frame 100. The can follows the arm: 8 cm off at frame 25, 26 cm at frame 100.
+
+**Why.** It's the same snowball as the reader in chapter 4. Each step is only a little wrong, but the next step is drawn on top of that little error. In training, the 4 past pictures were always perfect; in the dream they are the model's own slightly-off drawings.
+
+**What we try next.** Prove whether noise augmentation (chapter 5's drift fix) is helping, by training the same model without it (an **ablation**). Then check whether the dream really obeys the actions, and try telling the model at dream time that its past pictures are a bit noisy.
+
+| Piece | Real term | Where |
+| --- | --- | --- |
+| The dream | Autoregressive rollout | `eval/dream.py` |
+| How far it wanders | Drift: PSNR vs a frozen picture, and positions read by the reader | `eval/dream.py`, `eval/dream_tracking.py` |
+| Switching one piece off to prove it matters | Ablation | `configs/world_model_v1_noaug.yaml` |
+
+---
+
 ## The lab rules, and why they exist
 
 | Rule | Everyday reason |
@@ -323,7 +341,6 @@ In training, the 4 past frames are always **real** and perfect. When dreaming, t
 
 ## Coming chapters (one line each)
 
-- **Step 6 · Dream for 100 steps:** feed its own drawings back in. The fight here is against **drift** (small errors snowballing).
 - **Step 7 · Brains play in the dream:** dream frame, then eyes, then brain, then action, then the next dream frame. That gives **ranking C**.
 - **Step 8 · The verdict:** does ranking C match ranking A? (Spearman)
 - **Step 9 · Fix one thing** and measure again.

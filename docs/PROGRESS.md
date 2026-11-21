@@ -46,6 +46,7 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 
 ## Step 6 · 100-step dream (Dec 1 to 7)
 - [ ] Autoregressive replay of validation episodes
+  - first test (8 episodes, laptop): sharp frames but the dream drifts: fingertip 4.7 cm off at frame 10, 37.8 at 100; can 7.6 cm at 25, 25.8 at 100 (reader on real frames ~1 cm). No-augmentation ablation config ready for Kaggle
 - [ ] Drift chart with and without noise augmentation
 - [ ] Action-following errors at steps 10, 50, 100
 - [ ] Side-by-side GIFs

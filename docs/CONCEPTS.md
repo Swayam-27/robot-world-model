@@ -82,7 +82,7 @@ I taught a neural network to imagine how a robot arm's world behaves just by wat
 | Drift | Small mistakes piling up over a long dream until it turns blurry or wrong |
 | Noise augmentation | The fix for drift: deliberately mess up past frames in training so the model doesn't trust them blindly |
 | Action-following | Checking the dream obeys the actions rather than producing plausible motion |
-| PSNR / LPIPS | Scores for how close a dreamed frame looks to the real one |
+| PSNR / LPIPS | Scores for how close a dreamed frame looks to the real one (PSNR in dB, higher = closer). PSNR flatters mostly-still pictures, so we always show a 'frozen picture' baseline next to it |
 | Rankings A, B, C | Brains ranked in MuJoCo (A), in MuJoCo with the reader's eyes (B), in the dream (C) |
 | Spearman correlation | One number from -1 to 1 for how well two rankings agree; 1 = identical order. The headline result |
 | Sim-to-real gap | A model trained in simulation failing on a real robot because reality looks and behaves differently |
