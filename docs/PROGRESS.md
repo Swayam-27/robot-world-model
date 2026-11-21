@@ -1,6 +1,6 @@
 # Progress
 
-**Current step:** Step 5 · World model (Step 4 done 2026-11-21)
+**Current step:** Step 6 · 100-step dream (Step 5 done 2026-11-21)
 **Target:** resume-ready on 2027-01-04. Exams start Nov 30 (no project work during exams).
 
 Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
@@ -41,8 +41,8 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 ## Step 5 · World model (Dec 1 to 7)
 - [x] DIAMOND world-model code read (Atari demo skipped, see DECISIONS) · U-Net copied to `models/diamond_blocks.py` (4.26M params at 64 channels); dataset `models/world_model_data.py` checked on 3 episodes per split per folder
 - [x] Inputs adapted: 4 context frames, continuous actions via MLP · `models/world_model.py` (4.48M params), plus context-noise level as a hint; self-test overfits one batch and samples uint8 frames
-- [ ] Trained with noise augmentation; one-step predictions look right at contact
-  - v1 first run (Kaggle T4, 3 h, 32k steps, W&B azure-butterfly-5): moving-pixel error 12.9 of 255 vs copy-last-frame 30.5; val loss 0.0033, no overfitting, still improving; grids sharp at the can. Next: a deliberate contact check, then decide whether to train longer
+- [x] Trained with noise augmentation; one-step predictions look right at contact
+  - v1 first run (Kaggle T4, 3 h, 32k steps, W&B azure-butterfly-5): moving-pixel error 12.9 of 255 vs copy-last-frame 30.5; val loss 0.0033, no overfitting, still improving; grids sharp at the can. Contact check (`eval/contact_check.py`): on steps where the can moves > 1 mm, moving-pixel error 16.1 vs copy-last 28.0 (still steps 11.7): 1.37x harder, but predictions look the same as the real frames by eye. Longer training (resume) later if the dreams need it
 
 ## Step 6 · 100-step dream (Dec 1 to 7)
 - [ ] Autoregressive replay of validation episodes

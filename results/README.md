@@ -19,3 +19,4 @@ Small result files copied from `outputs/` (which is gitignored) so the numbers b
 | `ranking_b{,_v2,_v3,_v4}_per_seed.csv` | `eval/ranking_b.py` | Every brain x every eval seed, per reader |
 | `world_model_v1_eval_log.csv` | `models/train_world_model.py` | World model v1 (Kaggle T4, 3 h, 32,202 steps): val loss and one-step pixel errors every 2,000 steps, whole image and moving pixels, vs copy-last-frame |
 | `world_model_v1_samples_step{02000,32000}.png` | `models/train_world_model.py` | Same 8 validation examples at step 2,000 and 32,000: newest context, real next frame, prediction, error x4 |
+| `world_model_v1_contact_check.csv/.png` | `eval/contact_check.py` | World model v1 one-step error on 128 validation steps where the can moved > 1 mm (contact) vs 128 where it did not, next to copy-last-frame; grid of the biggest pushes |

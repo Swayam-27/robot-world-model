@@ -1,0 +1,11 @@
+# Step 5: is world model v1 right when the arm pushes the can? (eval/contact_check.py, laptop CPU, ~1 min)
+# Run:  python -m eval.contact_check --config configs/contact_check_v1.yaml
+checkpoint: outputs/world_model_v1/best.pt       # unzipped from Kaggle's world_model.zip
+data_dirs: [outputs/dataset, outputs/dataset_dagger]   # VALIDATION episodes only
+contact_mm: 1.0          # contact step = the can moves more than this between frame t and t+1 (true states)
+still_mm: 0.01           # comparison steps = the can (almost) does not move
+n_examples: 128          # per group, picked with a fixed seed
+seed: 0
+batch: 32
+out_csv: results/world_model_v1_contact_check.csv
+out_png: results/world_model_v1_contact_check.png
