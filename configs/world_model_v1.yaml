@@ -8,11 +8,16 @@ data:
   extra_data_dirs: [outputs/dataset_dagger]  # DAgger episodes: real physics too, more varied arm poses
   context_frames: 4                          # = CONTEXT_FRAMES in envs/constants.py (asserted)
 
-model:
-  type: diamond_unet
+model:                     # DIAMOND's Atari U-Net (models/diamond_blocks.py); actions: last 4 x 7 -> MLP
+  cond_channels: 256       # size of the hint vector (noise level + context-noise level + actions)
+  depths: [2, 2, 2, 2]     # residual blocks per U-Net level
   channels: [64, 64, 64, 64]
-  action_dim: 7
-  action_history: 4        # last 4 actions -> MLP -> conditioning vector
+  attn_depths: [0, 0, 0, 0]
+
+diffusion:                 # EDM settings, all DIAMOND's
+  sigma_data: 0.5
+  sigma_offset_noise: 0.3
+  sigma_distribution: {loc: -0.4, scale: 1.2, sigma_min: 0.002, sigma_max: 20}   # log-normal training noise levels
 
 training:
   batch_size: 64

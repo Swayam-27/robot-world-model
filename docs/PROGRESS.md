@@ -40,7 +40,7 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 
 ## Step 5 · World model (Dec 1 to 7)
 - [x] DIAMOND world-model code read (Atari demo skipped, see DECISIONS) · U-Net copied to `models/diamond_blocks.py` (4.26M params at 64 channels); dataset `models/world_model_data.py` checked on 3 episodes per split per folder
-- [ ] Inputs adapted: 4 context frames, continuous actions via MLP
+- [x] Inputs adapted: 4 context frames, continuous actions via MLP · `models/world_model.py` (4.48M params), plus context-noise level as a hint; self-test overfits one batch and samples uint8 frames
 - [ ] Trained with noise augmentation; one-step predictions look right at contact
 
 ## Step 6 · 100-step dream (Dec 1 to 7)

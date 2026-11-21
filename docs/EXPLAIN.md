@@ -289,11 +289,16 @@ In training, the 4 past frames are always **real** and perfect. When dreaming, t
 
 | Piece | Real term | Where |
 | --- | --- | --- |
-| The restorer | Denoiser (a U-Net) | `models/` (Step 5) |
-| The amount of damage | Noise level σ | |
-| The hints | Conditioning: 4 frames + 4 actions | |
-| Drawing from noise | Sampling, 3–5 steps | |
+| The restorer | Denoiser (a U-Net, 4.5M weights) | `models/world_model.py` (`WorldModel`), U-Net copied from DIAMOND in `models/diamond_blocks.py` |
+| The amount of damage | Noise level σ | `WorldModel.loss` (log-normal σ in training) |
+| The hints | Conditioning: 4 frames + 4 actions + σ + context-noise level | `InnerModel.forward`: frames as channels, the rest summed into one vector |
+| Practice examples | 4 frames + 4 actions -> next frame | `models/world_model_data.py` |
+| Drawing from noise | Sampling, 3 Euler steps | `WorldModel.sample` |
 | The noise recipe | EDM, adapted from DIAMOND | github.com/eloialonso/diamond |
+
+**What we changed from DIAMOND (only two things).** Atari has buttons, so DIAMOND looks actions up in a table; our arm has 7 torques, so a small MLP turns the last 4 actions (28 numbers) into the hint vector. And DIAMOND never noises its past frames; we add GameNGen's noise augmentation (up to 0.7) and tell the model how much was added, to fight drift in Step 6.
+
+**A neat EDM trick.** The network never draws the clean frame directly. It draws a *correction* to the noisy frame. When the noise is light, the noisy frame is already almost right, so the network only has to fix a little; when it's heavy, it draws almost everything. The formulas `c_skip`, `c_out` and `c_in` set that balance from σ.
 
 **The goal of Step 5:** one-step predictions on validation episodes that you can't tell from real frames by eye, *especially when the arm touches the can*. The background is learned almost instantly; contact is the hard part.
 
