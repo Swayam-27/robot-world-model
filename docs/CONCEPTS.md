@@ -67,6 +67,11 @@ I taught a neural network to imagine how a robot arm's world behaves just by wat
 | Held-out policy | A brain kept completely out of the training videos, to test whether the dream can judge brains it never saw |
 | Replay check | Re-run the simulator from the episode's seed with the recorded actions; every state and frame must match exactly, proving the data lines up |
 | Context | The past frames the world model sees (the last 4) |
+| Diffusion model | A network trained to clean noise off pictures at every noise strength; to draw, it starts from pure noise and cleans in a few steps. Stays sharp where plain MSE prediction goes blurry |
+| Noise level (σ, sigma) | How much random noise buries the frame: tiny = nearly clean, huge = pure static. Picked at random in training; walked down from high to 0 when drawing |
+| Denoiser | The network that guesses the clean frame from a noisy one (ours is a U-Net) |
+| Conditioning | Extra hints given to the denoiser so it draws *the right* picture: past frames, actions, noise level |
+| Sampling steps | How many clean-up steps are used to draw one frame (3-5 for us); more = slower, sometimes better |
 | U-Net | The network shape inside the diffusion model: a CNN that shrinks the image to understand it, then grows it back to draw |
 | DIAMOND | A published open-source diffusion world model whose code we adapt |
 | EDM | DIAMOND's recipe for adding and removing noise; good frames in a few steps |

@@ -230,6 +230,75 @@ The honest small print: half of the neighbouring gaps are still near-ties, so a 
 
 ---
 
+## Chapter 5 · The imagination (Step 5, starting)
+
+**The job.** Show the world model the last 4 frames and the last 4 actions, and it draws **the next frame**. Do that 100 times in a row and you have a dream. This chapter is about how a network can *draw*. The reader only had to *read* numbers off a picture, which is much easier.
+
+### Why not just predict the next frame directly?
+
+The obvious idea is a CNN that takes past frames and spits out the next frame, trained with MSE like the reader. It works badly. When the future is a little uncertain (will the can slide 1 cm or 2 cm?), MSE rewards the **average** of the possibilities, and the average of two sharp pictures is **one blurry picture**. Feed blurry pictures back in for 100 steps and the dream melts into fog.
+
+Diffusion models avoid this. Instead of drawing the picture in one go, they **clean it up from noise** in a few small steps. Each step only has to fix a little, so the result stays sharp.
+
+### The core idea: a restorer of damaged photos
+
+Imagine a photo restorer. You give them an old photo covered in grain and dust and ask, "what did the clean photo look like?"
+- With **a little** grain, it's easy: just remove the specks.
+- With **a lot** of grain, they must guess the big shapes first: there's an arm *roughly here*, the can *roughly there*.
+- With **pure grain**, they'd have to make up the whole picture.
+
+**Training a diffusion model = training this restorer.**
+1. Take a real frame from our dataset (the true next frame).
+2. Pick a random **noise level** (σ, "sigma"): sometimes tiny, sometimes huge.
+3. Bury the frame in that much random noise: `noisy = frame + σ × random_noise`.
+4. Ask the network to give back the **clean** frame, and grade it with MSE.
+
+Repeat millions of times, at every noise level. The network becomes an expert restorer at every amount of damage.
+
+**Drawing (sampling)** then works backwards. Start from **pure noise**, ask the restorer "clean this", and take a small step toward its answer. Add back a bit less noise, ask again, and repeat. Big shapes appear first, then details. Our recipe needs only **3 to 5 steps** per frame.
+
+**Why this stays sharp:** the network never has to commit to one blurry average in one go. Each step makes a small correction, and the final steps work at fine detail, so they pick *one* sharp version instead of averaging many.
+
+### From "a picture" to "the next picture": the hints
+
+A plain diffusion model restores *any* plausible photo of the arm. We need *the* next frame. So the restorer also gets **hints** (this is called **conditioning**):
+- **The last 4 frames**, stacked next to the noisy frame as extra colour channels. They show where everything is and how it's moving.
+- **The last 4 actions** (4 × 7 = 28 numbers), squeezed by a small MLP into one vector that's added to every layer. They tell it which way the brain pushed.
+- **The noise level σ**, also added to every layer, so the restorer knows how damaged its input is.
+
+With hints like "the arm was moving left and the brain pushed left", only one clean picture fits: the true next frame. **The hints turn a picture-maker into a world model.**
+
+### The network: a U-Net
+
+The restorer is a **U-Net**, a CNN shaped like a U:
+- **Down the left side**, the picture shrinks (64 → 32 → 16 → 8) while the channels grow. It understands *what* is where, like the reader did.
+- **Up the right side**, it grows back to 64×64 to *draw* the answer.
+- **Skip connections** carry fine details straight across the U from left to right, so small things like the can's edge aren't lost in the shrinking.
+
+This is the same idea as the reader's conv blocks, plus a second half that draws.
+
+### EDM: the recipe for the noise
+
+**EDM** (Karras et al., 2022) is a set of careful choices about *which* noise levels to train on, how to scale the input and output so the network always sees nicely sized numbers, and how to take the sampling steps. Its practical gift is that a few steps are enough for good frames. That's why a 100-step dream is affordable on a free GPU.
+
+### The trap we must fight later: drift (preview of Step 6)
+
+In training, the 4 past frames are always **real** and perfect. When dreaming, they are the model's **own drawings**, slightly wrong. It's the same snowball we fought with the reader's DAgger. The fix here is **noise augmentation**: in training, deliberately add some noise to the past frames (and tell the model how much). Then it learns not to trust its context blindly. GameNGen capped this at 0.7.
+
+### Where it lives
+
+| Piece | Real term | Where |
+| --- | --- | --- |
+| The restorer | Denoiser (a U-Net) | `models/` (Step 5) |
+| The amount of damage | Noise level σ | |
+| The hints | Conditioning: 4 frames + 4 actions | |
+| Drawing from noise | Sampling, 3–5 steps | |
+| The noise recipe | EDM, adapted from DIAMOND | github.com/eloialonso/diamond |
+
+**The goal of Step 5:** one-step predictions on validation episodes that you can't tell from real frames by eye, *especially when the arm touches the can*. The background is learned almost instantly; contact is the hard part.
+
+---
+
 ## The lab rules, and why they exist
 
 | Rule | Everyday reason |
@@ -244,7 +313,6 @@ The honest small print: half of the neighbouring gaps are still near-ties, so a 
 
 ## Coming chapters (one line each)
 
-- **Step 5 · The imagination:** a diffusion model learns "given the last 4 frames and the action, draw the next frame".
 - **Step 6 · Dream for 100 steps:** feed its own drawings back in. The fight here is against **drift** (small errors snowballing).
 - **Step 7 · Brains play in the dream:** dream frame, then eyes, then brain, then action, then the next dream frame. That gives **ranking C**.
 - **Step 8 · The verdict:** does ranking C match ranking A? (Spearman)

@@ -1,15 +1,15 @@
 # Progress
 
-**Current step:** Step 4 · State reader (Step 3 done 2026-11-07)
-**Target:** resume-ready on 2027-01-04. Exams (assumed) Nov 17 to 30: no project work.
+**Current step:** Step 5 · World model (Step 4 done 2026-11-21)
+**Target:** resume-ready on 2027-01-04. Exams start Nov 30 (no project work during exams).
 
 Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 
 ## Step 0 · Get ready (this week)
 - [x] Port the Real vs AI Faces custom CNN to PyTorch (train, save, reload, log a loss curve) · Step 4a, `warmup/faces_cnn_torch.py` on Kaggle T4: 312,289 params, best val acc 0.858 at epoch 4 (val loss 0.311), reload matches exactly; loss printed per epoch (W&B curve still to do)
 - [x] Create the GitHub repo from this folder and push it
-- [ ] Kaggle: phone verified, GPU on, first cell clones the repo · phone + clone done; GPU not needed until Step 4
-- [ ] Weights & Biases (or TensorBoard) logging works
+- [x] Kaggle: phone verified, GPU on, first cell clones the repo · GPU T4 x2 used for readers v1-v4
+- [x] Weights & Biases (or TensorBoard) logging works · reader runs logged from Kaggle via a Kaggle secret (project robot-world-model)
 
 ## Step 1 · Real world runs (Nov 3 to 9)
 - [x] Pusher-v5 renders 64x64 frames headless on Kaggle
@@ -36,7 +36,7 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
   - v3 = v1 + weight decay 0.05 (W&B rural-disco-3): val loss 0.2455, speeds fixed in closed loop but angles/can worse; diagnosis all-from-reader +16.2 cm; ranking B v3 good brains 17.7-22.4 cm, Spearman 0.855, near-ties (`ranking_b_v3.csv`). Not good enough
   - v4 = v1 + DAgger data: 1,050 episodes recorded through reader v1 (`outputs/dataset_dagger`, 117 MB, replay check 14/14). Trained on Kaggle (W&B northern-water-4). Diagnosis all-from-reader +10.8 cm (best yet). **Ranking B v4: Spearman(A, B) = 1.000**, held-out brains placed correctly, 4 of 9 gaps clear; sac_960k 14.6 cm (`outputs/scores/ranking_b_v4.csv`). **Reader v4 = the project's reader**
 
-## Exams · Nov 17 to 30 · pause
+## Exams · from Nov 30 · pause
 
 ## Step 5 · World model (Dec 1 to 7)
 - [ ] DIAMOND Atari demo run and world-model code read
@@ -76,5 +76,7 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 Newest first. One entry per session: date, what got done, what's next, blockers.
 
 <!-- /end-session adds entries here -->
+
+- **2026-11-21** · Step 4 done. Reader v1 broke the brains in closed loop (ranking B Spearman 0.745, all near-ties); diagnosis on training seeds showed errors in every group compounding. v2 (3 frames) and v3 (weight decay) only moved the error around. v4 = DAgger round 1 (1,050 episodes recorded through reader v1, true state saved) gave diagnosis +10.8 cm and **ranking B Spearman 1.000** (4 of 9 gaps clear). Results in `results/`. EXPLAIN chapter 5 (diffusion) written. Next: Step 5, read DIAMOND's denoiser/U-Net code, decide how to bring it in, write the world-model dataset. Blockers: laptop memory (long background jobs get stopped; run long jobs in your own terminal).
 
 - **2026-11-04** · Step 0 repo pushed; Step 1 done. `PusherEnv` behind the `ArmEnv` interface, fixed camera C, `envs/check_env.py` passes locally and on Kaggle CPU (headless; both EGL and OSMesa work, EGL is the default), random-episode GIF looks right. Next: Step 2, SAC on Kaggle CPU. Blockers: none.
