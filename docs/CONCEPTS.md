@@ -72,6 +72,9 @@ I taught a neural network to imagine how a robot arm's world behaves just by wat
 | Denoiser | The network that guesses the clean frame from a noisy one (ours is a U-Net) |
 | Conditioning | Extra hints given to the denoiser so it draws *the right* picture: past frames, actions, noise level |
 | Sampling steps | How many clean-up steps are used to draw one frame (3-5 for us); more = slower, sometimes better |
+| EDM preconditioning (c_in, c_skip, c_out, c_noise) | Four small formulas from the noise level that resize the input and output so the network always sees nicely sized numbers. At low noise the answer is mostly the noisy frame itself (c_skip near 1), so the network only predicts a small correction |
+| AdaGroupNorm | How the hints reach every layer of DIAMOND's U-Net: normalise the feature maps, then scale and shift them by amounts computed from the hint vector (noise level + actions) |
+| Euler sampling step | The simplest way to walk from noise to a clean frame: look where the denoiser says the clean frame is, step part of the way there, repeat with less noise |
 | U-Net | The network shape inside the diffusion model: a CNN that shrinks the image to understand it, then grows it back to draw |
 | DIAMOND | A published open-source diffusion world model whose code we adapt |
 | EDM | DIAMOND's recipe for adding and removing noise; good frames in a few steps |

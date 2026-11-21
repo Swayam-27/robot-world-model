@@ -1,13 +1,12 @@
-# Example experiment config. Copy and edit for each new experiment;
-# record what changed in docs/DECISIONS.md.
+# Step 5, world model v1 (DIAMOND-style pixel diffusion with EDM). Record changes in docs/DECISIONS.md.
+# Data check (laptop):  python -m models.world_model_data --config configs/world_model_v1.yaml --limit 3
 name: world_model_v1
 seed: 0
 
 data:
-  kaggle_dataset: "<your-username>/pusher-episodes"   # fill in after Step 3
-  frame_size: 64
-  context_frames: 4
-  val_fraction: 0.1        # split by episode, never by frame
+  data_dir: outputs/dataset                  # Step 3 episodes (Kaggle: --data-dir /kaggle/input/...)
+  extra_data_dirs: [outputs/dataset_dagger]  # DAgger episodes: real physics too, more varied arm poses
+  context_frames: 4                          # = CONTEXT_FRAMES in envs/constants.py (asserted)
 
 model:
   type: diamond_unet
@@ -25,8 +24,8 @@ training:
   log_samples_every_steps: 2000
 
 sampling:
-  denoising_steps: 4
+  denoising_steps: 3       # DIAMOND's setting; compare 3-5 later
 
 logging:
-  backend: wandb           # or tensorboard
+  backend: wandb
   project: robot-world-model

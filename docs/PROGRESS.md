@@ -39,7 +39,7 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 ## Exams · from Nov 30 · pause
 
 ## Step 5 · World model (Dec 1 to 7)
-- [ ] DIAMOND Atari demo run and world-model code read
+- [x] DIAMOND world-model code read (Atari demo skipped, see DECISIONS) · U-Net copied to `models/diamond_blocks.py` (4.26M params at 64 channels); dataset `models/world_model_data.py` checked on 3 episodes per split per folder
 - [ ] Inputs adapted: 4 context frames, continuous actions via MLP
 - [ ] Trained with noise augmentation; one-step predictions look right at contact
 
