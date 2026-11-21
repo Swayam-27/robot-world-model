@@ -303,6 +303,8 @@ In training, the 4 past frames are always **real** and perfect. When dreaming, t
 
 **A neat EDM trick.** The network never draws the clean frame directly. It draws a *correction* to the noisy frame. When the noise is light, the noisy frame is already almost right, so the network only has to fix a little; when it's heavy, it draws almost everything. The formulas `c_skip`, `c_out` and `c_in` set that balance from σ.
 
+**First result (3 hours on a free GPU).** After 32,000 practice rounds, the model draws the next frame so well that the error picture is almost black. On the moving pixels it is off by 12.9 brightness levels out of 255, while "just copy the last frame" is off by 30.5. Practice and exam scores are equal (train loss = val loss), so it is learning the physics, not memorising episodes. That's one step. Step 6 asks the hard question: what happens after 100 steps of drawing on top of its own drawings?
+
 **The goal of Step 5:** one-step predictions on validation episodes that you can't tell from real frames by eye, *especially when the arm touches the can*. The background is learned almost instantly; contact is the hard part.
 
 ---

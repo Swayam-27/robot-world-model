@@ -42,6 +42,7 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 - [x] DIAMOND world-model code read (Atari demo skipped, see DECISIONS) · U-Net copied to `models/diamond_blocks.py` (4.26M params at 64 channels); dataset `models/world_model_data.py` checked on 3 episodes per split per folder
 - [x] Inputs adapted: 4 context frames, continuous actions via MLP · `models/world_model.py` (4.48M params), plus context-noise level as a hint; self-test overfits one batch and samples uint8 frames
 - [ ] Trained with noise augmentation; one-step predictions look right at contact
+  - v1 first run (Kaggle T4, 3 h, 32k steps, W&B azure-butterfly-5): moving-pixel error 12.9 of 255 vs copy-last-frame 30.5; val loss 0.0033, no overfitting, still improving; grids sharp at the can. Next: a deliberate contact check, then decide whether to train longer
 
 ## Step 6 · 100-step dream (Dec 1 to 7)
 - [ ] Autoregressive replay of validation episodes
