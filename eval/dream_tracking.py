@@ -46,7 +46,8 @@ def main() -> None:
     reader = ReaderBundle.load(cfg["reader"])
     print(f"{len(real)} dreamed episodes | reader {cfg['reader']} ({reader.n_frames} frames)")
 
-    est = {"real": read_episodes(reader, real), "dream": read_episodes(reader, dreamed)}
+    est = {"real": read_episodes(reader, real), "dream": read_episodes(reader, dreamed),
+           "frozen": np.repeat(states[:, :1], len(states[0]), axis=1)}   # yardstick: nothing ever moves from frame 0
     frames = np.arange(real.shape[1])
     rows, curves = [], {}
     for part, sl in PARTS.items():
@@ -60,13 +61,15 @@ def main() -> None:
 
     show = [f for f in (k, 10, 25, 50, 100) if f < len(frames)]
     wide = table[table.frame.isin(show)].pivot_table(index=["part", "frames_from"], columns="frame", values="mean_cm")
-    print("mean position error in cm (reader on real frames = the floor; reader on dream frames):")
+    print("mean position error in cm (real = reader on real frames, the floor; dream = reader on dream frames; "
+          "frozen = assume nothing moves from frame 0, the yardstick a dream must beat):")
     print(wide.round(1).to_string())
 
     fig, axes = plt.subplots(1, 2, figsize=(11, 4), sharey=True)
     for ax, part in zip(axes, PARTS):
         ax.plot(frames, curves[(part, "real")], color="gray", label="reader on REAL frames (floor)")
         ax.plot(frames, curves[(part, "dream")], color="C3", label="reader on DREAM frames")
+        ax.plot(frames, curves[(part, "frozen")], color="gray", ls="--", label="frozen: assume nothing moves")
         ax.axvline(k - 0.5, color="k", lw=0.5, ls=":")
         ax.set(title=f"{part}: where the frames put it", xlabel="frame", ylabel="error vs true position (cm)")
         ax.grid(alpha=0.3); ax.legend()

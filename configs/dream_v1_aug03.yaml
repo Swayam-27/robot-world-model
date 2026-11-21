@@ -1,0 +1,13 @@
+# Step 6: dream test with dream-time aug_level 0.3 (everything else as configs/dream_v1.yaml).
+# Run:  python -m eval.dream --config configs/dream_v1.yaml [--limit 8]
+checkpoint: outputs/world_model_v1/best.pt
+data_dirs: [outputs/dataset, outputs/dataset_dagger]   # VALIDATION episodes only
+n_episodes: 100          # picked with a fixed seed from all validation episodes
+real_start_frames: 1     # real frames given before dreaming starts: 1 = straight after reset, as in Step 7 (guide: 4)
+denoising_steps: 3       # as trained/evaluated in Step 5
+aug_level: 0.3           # ONLY change vs dream_v1.yaml: tell the model its context is a bit noisy
+seed: 0
+batch: 50
+out_dir: outputs/dream_v1_aug03
+gif_episodes: 4
+reader: outputs/reader_v4/reader_best.pt   # reader v4, for eval/dream_tracking.py

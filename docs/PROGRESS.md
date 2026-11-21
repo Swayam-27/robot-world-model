@@ -46,7 +46,7 @@ Tick boxes as work is finished. Step details are in `docs/BUILD_GUIDE.md`.
 
 ## Step 6 · 100-step dream (Dec 1 to 7)
 - [ ] Autoregressive replay of validation episodes
-  - first test (8 episodes, laptop): sharp frames but the dream drifts: fingertip 4.7 cm off at frame 10, 37.8 at 100; can 7.6 cm at 25, 25.8 at 100 (reader on real frames ~1 cm). No-augmentation ablation config ready for Kaggle
+  - first test (8 episodes, laptop): sharp frames but the dream drifts: fingertip 4.7 cm off at frame 10, 37.8 at 100; can 7.6 cm at 25, 25.8 at 100 (reader on real frames ~1 cm). No-augmentation ablation config ready for Kaggle. Dream-time aug_level 0.3: fingertip 27.8 cm at frame 100 (was 37.8; frozen yardstick 66.1), can 23.1 (was 25.8) but **worse than a can that never moves (19.6)**: pushing is the main problem
 - [ ] Drift chart with and without noise augmentation
 - [ ] Action-following errors at steps 10, 50, 100
   - first test (8 episodes, laptop): fingertip following error 5.1 / 25.9 / 39.1 cm at 10 / 50 / 100; the dream reacts to changed actions in the right direction early (cosine 0.97 at frame 10), so the problem is drift, not ignored actions

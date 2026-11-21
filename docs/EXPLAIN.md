@@ -319,6 +319,8 @@ In training, the 4 past frames are always **real** and perfect. When dreaming, t
 
 **Does it obey the controls?** A world model could cheat: draw an arm that moves *plausibly* but ignores what the brain asked for. To check, we took the same start picture and gave it a *different* list of actions, both in the dream and in the real simulator. At frame 10 the dreamed arm moved 6.6 cm away from where it went before, the real arm 7.2 cm, and in the same direction in all 8 episodes. So the model does listen to the actions. Its problem is the snowball: after ~20 steps it has wandered so far that the answer no longer lines up.
 
+**A fair yardstick, and a hard truth.** "38 cm off" means nothing without something to compare with. So we added the laziest possible guess: *nothing ever moves*. For the arm, that lazy guess is 66 cm off at frame 100, so the dreamed arm (28 to 38 cm) is clearly doing something right. For the can, the lazy guess is only 20 cm off at frame 100, and the dream is 23 to 26 cm off. **The dream pushes the can worse than not pushing it at all.** That matters, because the final can-to-goal distance is exactly what we use to rank the brains. Telling the model at dream time that its past pictures are a bit noisy (`aug_level` 0.3) helped a little (arm 28 instead of 38 cm), but didn't fix the can.
+
 **What we try next.** Prove whether noise augmentation (chapter 5's drift fix) is helping, by training the same model without it (an **ablation**). Then check whether the dream really obeys the actions, and try telling the model at dream time that its past pictures are a bit noisy.
 
 | Piece | Real term | Where |
