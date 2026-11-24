@@ -1,30 +1,27 @@
-"""Step 6: does the dream OBEY the actions, or just draw plausible motion?
+"""Step 6: does the dream OBEY the actions, or just draw plausible motion?  (laptop: simulator + reader, no dreaming)
 
-Run:  python -m eval.action_test --config configs/action_test_v1.yaml     (after eval/dream.py wrote dreams.npz)
-For each dreamed episode (start seed s, recorded actions A) we take actions B = the recorded actions of the NEXT
-dreamed episode: realistic torques that send the arm somewhere else. Then:
-  real B  = the simulator replays B from seed s (laptop, all rendering stays here)
-  dream B = the world model dreams B from the same single start frame (same settings as dream A)
-Reader v4 reads the fingertip and can off every frame. If the dream obeys the controls, dream B follows real B,
-NOT dream A. Reports, at the chosen frames: dream B vs real B (the action-following error), dream B vs dream A
-(how much the dream changed), real B vs real A (how much it SHOULD have changed).
+Run:  python -m eval.action_test --config configs/dream_v1.yaml      (after eval/dream.py with swap_actions: true)
+eval/dream.py dreamed every start frame twice: with its own recorded actions A, and with actions B taken from an
+episode of ANOTHER brain. Here the simulator replays B from the same seed (all rendering stays on the laptop) and
+reader v4 reads positions off every frame. If the dream obeys, dream B goes where real B goes, NOT where dream A went.
+Reports at frames 10, 50, 100 for the fingertip: dream B vs true B (following error), the reader's own error on real B
+frames (floor), and how far A -> B moved it in the dream and in reality, with the cosine between those two moves
+(1 = same direction; only episodes where the true move is > 2 cm, since tiny moves have no clear direction).
 """
 import argparse
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import torch
 import yaml
 
-from envs.constants import FINGERTIP_XYZ, OBJECT_XYZ
+from envs.constants import FINGERTIP_XYZ
 from envs.pusher import PusherEnv
-from eval.dream import dream
 from eval.dream_tracking import read_episodes
 from models.reader import ReaderBundle
-from models.world_model import WorldModel
 
-PARTS = {"fingertip": FINGERTIP_XYZ, "can": OBJECT_XYZ}
+REPORT_FRAMES = [10, 50, 100]
+MIN_MOVE_CM = 2.0
 
 
 def simulate(seed: int, actions: np.ndarray, env: PusherEnv) -> tuple[np.ndarray, np.ndarray]:
@@ -40,61 +37,42 @@ def simulate(seed: int, actions: np.ndarray, env: PusherEnv) -> tuple[np.ndarray
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True)
-    cfg = yaml.safe_load(open(parser.parse_args().config))
-    dcfg = yaml.safe_load(open(cfg["dream_config"]))
-    out = Path(cfg["out_dir"])
-    data = np.load(Path(dcfg["out_dir"]) / "dreams.npz")
-    names, k = [str(n) for n in data["names"]], int(data["real_start_frames"])
-    real_a, dream_a, states_a, acts_a = data["real"], data["dreamed"], data["states"], data["actions"]
-    seeds = {f"{Path(d).name}/{r.file}": int(r.seed) for d in cfg["data_dirs"]
-             for r in pd.read_csv(Path(d) / "episodes.csv").itertuples()}
-    acts_b = np.roll(acts_a, -1, axis=0)                       # episode i gets episode i+1's actions
-    print(f"{len(names)} episodes; actions B = the next episode's recorded actions")
+    parser.add_argument("--out-dir", help="override out_dir: the folder that holds dreams.npz")
+    args = parser.parse_args()
+    cfg = yaml.safe_load(open(args.config))
+    out = Path(args.out_dir or cfg["out_dir"])
+    a, b = np.load(out / "dreams.npz"), np.load(out / "dreams_swapped.npz")
+    seeds, k, states_a, acts_b = a["seeds"], int(a["real_start_frames"]), a["states"], b["actions"]
+    real_a, dream_a, dream_b = a["real"], a["dreamed"], b["dreamed"]
 
-    env = PusherEnv()                                          # sanity check: replaying A reproduces the recording
-    f0, s0 = simulate(seeds[names[0]], acts_a[0], env)
-    assert np.abs(s0 - states_a[0]).max() < 1e-3, "replaying the recorded actions does not reproduce the episode"
-    real_b, states_b = zip(*(simulate(seeds[n], a, env) for n, a in zip(names, acts_b)))
-    real_b, states_b = np.stack(real_b), np.stack(states_b)
+    env = PusherEnv()
+    _, check = simulate(int(seeds[0]), a["actions"][0], env)   # sanity check: replaying A reproduces the recording
+    assert np.abs(check - states_a[0]).max() < 1e-3, "replaying the recorded actions does not reproduce the episode"
+    real_b, states_b = (np.stack(x) for x in zip(*(simulate(int(s), act, env) for s, act in zip(seeds, acts_b))))
     env.close()
-    print(f"simulator replay of A reproduces the recording (max state diff {np.abs(s0 - states_a[0]).max():.1e}); "
-          f"real B simulated")
+    assert np.array_equal(real_b[:, 0], real_a[:, 0]), "same seed must give the same start frame"
+    print(f"{len(seeds)} episodes | replay of A reproduces the recording | actions B from another brain")
 
-    ck = torch.load(dcfg["checkpoint"], map_location="cpu", weights_only=False)
-    model = WorldModel(ck["config"]); model.load_state_dict(ck["model"]); model.eval()
-    torch.manual_seed(dcfg["seed"])
-    start = torch.from_numpy(real_a[:, :k]).permute(0, 1, 4, 2, 3)
-    assert np.array_equal(real_b[:, :k], real_a[:, :k]), "same seed must give the same start frame"
-    dream_b = dream(model, start, torch.from_numpy(acts_b), dcfg["denoising_steps"], dcfg["aug_level"])
-    dream_b = dream_b.permute(0, 1, 3, 4, 2).numpy()
-    print("dream B done")
-
-    reader = ReaderBundle.load(dcfg["reader"])
-    est = {name: read_episodes(reader, x) for name, x in
-           [("dream_a", dream_a), ("dream_b", dream_b), ("real_b", real_b)]}
-    true = {"a": states_a, "b": states_b}
+    reader = ReaderBundle.load(cfg["reader"])
+    tip = {n: read_episodes(reader, x)[:, :, FINGERTIP_XYZ] for n, x in
+           (("dream_a", dream_a), ("dream_b", dream_b), ("real_b", real_b))}
+    true_a, true_b = states_a[:, :, FINGERTIP_XYZ], states_b[:, :, FINGERTIP_XYZ]
+    cm = lambda x, y, f: np.linalg.norm(x[:, f] - y[:, f], axis=-1) * 100
     rows = []
-    for part, sl in PARTS.items():
-        dist = lambda x, y: np.linalg.norm(x[:, :, sl] - y[:, :, sl], axis=-1) * 100      # cm, (N, T)
-        pairs = {"dream B vs true B (following error)": dist(est["dream_b"], true["b"]),
-                 "reader on real B vs true B (floor)": dist(est["real_b"], true["b"]),
-                 "dream B vs dream A (dream changed)": dist(est["dream_b"], est["dream_a"]),
-                 "true B vs true A (should change)": dist(true["b"], true["a"])}
-        rows += [{"part": part, "comparison": c, **{f"frame {f}": v[:, f].mean() for f in cfg["report_frames"]}}
-                 for c, v in pairs.items()]
+    for f in REPORT_FRAMES:
+        move_d, move_t = tip["dream_b"][:, f] - tip["dream_a"][:, f], true_b[:, f] - true_a[:, f]
+        size_d, size_t = np.linalg.norm(move_d, axis=1) * 100, np.linalg.norm(move_t, axis=1) * 100
+        ok = size_t > MIN_MOVE_CM
+        cos = (move_d * move_t).sum(1) / (np.linalg.norm(move_d, axis=1) * np.linalg.norm(move_t, axis=1) + 1e-9)
+        rows.append({"frame": f, "following_error_cm": cm(tip["dream_b"], true_b, f).mean(),
+                     "reader_floor_cm": cm(tip["real_b"], true_b, f).mean(), "dream_moved_cm": size_d.mean(),
+                     "true_moved_cm": size_t.mean(), "cosine_mean": cos[ok].mean(),
+                     "cosine_p10": np.percentile(cos[ok], 10), "n_cosine": int(ok.sum())})
     table = pd.DataFrame(rows)
     table.to_csv(out / "action_test.csv", index=False)
-    print("mean distance in cm:")
-    print(table.round(1).to_string(index=False))
-
-    np.savez_compressed(out / "action_test.npz", dream_b=dream_b, real_b=real_b, states_b=states_b, actions_b=acts_b)
-    import imageio.v2 as imageio                               # GIF: real A | dream A | real B | dream B
-    gap = np.zeros_like(real_a[0][:, :, :4])
-    for j in range(min(2, len(names))):
-        side = np.concatenate([real_a[j], gap, dream_a[j], gap, gap, gap, real_b[j], gap, dream_b[j]], axis=2)
-        imageio.mimsave(out / f"action_test_{j}.gif", [np.kron(f, np.ones((3, 3, 1), dtype=np.uint8)) for f in side],
-                        duration=0.05, loop=0)
-    print(f"saved {out / 'action_test.csv'} and 2 GIFs (real A | dream A || real B | dream B)")
+    print("fingertip, swapping actions A -> B:")
+    print(table.round(2).to_string(index=False))
+    print(f"saved {out / 'action_test.csv'}")
 
 
 if __name__ == "__main__":

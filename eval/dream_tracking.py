@@ -3,7 +3,7 @@
 Run:  python -m eval.dream_tracking --config configs/dream_v1.yaml      (after eval/dream.py wrote dreams.npz)
 The reader turns frames into positions. Run it on the REAL frames (its own error: the floor) and on the DREAM
 frames, and compare both with the true states. Dream error far above the floor = the dream put the can or the arm
-in the wrong place (or lost the can). Same actions are replayed in both, so a perfect world model would match
+in the wrong place. Same actions are replayed in both, so a perfect world model would match
 the real frames and sit on the floor. Reports errors at chosen frames and saves a chart of error vs frame.
 """
 import argparse
@@ -36,11 +36,21 @@ def read_episodes(reader: ReaderBundle, frames: np.ndarray, batch: int = 512) ->
     return (np.concatenate(out) * reader.std + reader.mean).reshape(n, t, -1)
 
 
+def can_missing(frames: np.ndarray, bright: int) -> np.ndarray:
+    """(N, T, 64, 64, 3) uint8 -> (N, T) bool: True where no pixel is as bright as the can in R, G and B.
+    The reader ALWAYS outputs a can position, even for a can the dream lost, so its cm errors need this check.
+    Real validation frames: 8.5 such pixels per frame near the can, 0.01 elsewhere. The arm hides the can in some
+    real frames too, so the dream's rate is compared with the real one, not with zero."""
+    return (frames.min(axis=-1) > bright).sum(axis=(2, 3)) == 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True)
-    cfg = yaml.safe_load(open(parser.parse_args().config))
-    out = Path(cfg["out_dir"])
+    parser.add_argument("--out-dir", help="override out_dir: the folder that holds dreams.npz")
+    args = parser.parse_args()
+    cfg = yaml.safe_load(open(args.config))
+    out = Path(args.out_dir or cfg["out_dir"])
     data = np.load(out / "dreams.npz")
     dreamed, real, states, k = data["dreamed"], data["real"], data["states"], int(data["real_start_frames"])
     reader = ReaderBundle.load(cfg["reader"])
@@ -64,6 +74,15 @@ def main() -> None:
     print("mean position error in cm (real = reader on real frames, the floor; dream = reader on dream frames; "
           "frozen = assume nothing moves from frame 0, the yardstick a dream must beat):")
     print(wide.round(1).to_string())
+
+    miss = {src: can_missing(x, cfg["can_bright"]) for src, x in (("real", real), ("dream", dreamed))}
+    pd.DataFrame({"frame": frames, "real_missing": miss["real"].mean(0), "dream_missing": miss["dream"].mean(0)}).to_csv(
+        out / "can_missing.csv", index=False)
+    print("share of episodes with no can-bright pixel:")
+    for f in show:
+        print(f"  frame {f:3d}: real {miss['real'][:, f].mean():4.0%} | dream {miss['dream'][:, f].mean():4.0%}")
+    gone = {src: int(m[:, -20:].all(1).sum()) for src, m in miss.items()}     # gone for good = absent in all last 20 frames
+    print(f"can absent in ALL of the last 20 frames: real {gone['real']}, dream {gone['dream']} of {len(real)} episodes")
 
     fig, axes = plt.subplots(1, 2, figsize=(11, 4), sharey=True)
     for ax, part in zip(axes, PARTS):
