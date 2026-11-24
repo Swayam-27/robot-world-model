@@ -25,18 +25,27 @@ from envs.constants import ACTION_DIM, CONTEXT_FRAMES, EPISODE_STEPS  # noqa: E4
 from models.world_model import WorldModel  # noqa: E402
 
 
-def load_val_episodes(dirs: list[Path]) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[str]]:
+def load_val_episodes(dirs: list[Path]) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[str], list[str]]:
     """All validation episodes -> frames (N, 101, 64, 64, 3) uint8, actions (N, 100, 7), true states (N, 101, 23),
-    names 'folder/file'."""
-    frames, actions, states, names = [], [], [], []
+    names 'folder/file', brain of each episode."""
+    frames, actions, states, names, brains = [], [], [], [], []
     for d in dirs:
         index = pd.read_csv(d / "episodes.csv")
-        for f in index.loc[index["split"] == "val", "file"]:
+        for f, brain in index.loc[index["split"] == "val", ["file", "brain"]].itertuples(index=False):
             with np.load(d / f) as ep:
                 frames.append(ep["frames"]); actions.append(ep["actions"].astype(np.float32))
                 states.append(ep["states"].astype(np.float32))
-            names.append(f"{d.name}/{f}")
-    return np.stack(frames), np.stack(actions), np.stack(states), names
+            names.append(f"{d.name}/{f}"); brains.append(brain)
+    return np.stack(frames), np.stack(actions), np.stack(states), names, brains
+
+
+def pick_episodes(brains: list[str], n: int, seed: int) -> np.ndarray:
+    """n episode numbers in round-robin order over the brains (shuffled inside each brain), so that even the first
+    few cover every brain. Sorting the picks put the 8 first tests all on sac_960k (DECISIONS 2026-11-24)."""
+    rng = np.random.default_rng(seed)
+    queues = [list(rng.permutation(np.flatnonzero(np.array(brains) == b))) for b in sorted(set(brains))]
+    order = [q[i] for i in range(max(map(len, queues))) for q in queues if i < len(q)]
+    return np.array(order[:n])
 
 
 @torch.no_grad()
@@ -71,8 +80,8 @@ def main() -> None:
 
     ck = torch.load(cfg["checkpoint"], map_location="cpu", weights_only=False)
     model = WorldModel(ck["config"]); model.load_state_dict(ck["model"]); model.eval()
-    frames, actions, states, names = load_val_episodes([Path(d) for d in cfg["data_dirs"]])
-    pick = np.sort(np.random.default_rng(cfg["seed"]).choice(len(frames), size=cfg["n_episodes"], replace=False))
+    frames, actions, states, names, brains = load_val_episodes([Path(d) for d in cfg["data_dirs"]])
+    pick = pick_episodes(brains, cfg["n_episodes"], cfg["seed"])
     pick = pick[:args.limit] if args.limit else pick
     real, acts = frames[pick], actions[pick]
     k = cfg["real_start_frames"]
@@ -111,7 +120,8 @@ def main() -> None:
         imageio.mimsave(out / f"dream_{j}.gif", [np.kron(f, np.ones((4, 4, 1), dtype=np.uint8)) for f in side],
                         duration=0.05, loop=0)
     np.savez_compressed(out / "dreams.npz", dreamed=dreamed, real=real, states=states[pick], actions=acts,
-                        names=np.array([names[i] for i in pick]), real_start_frames=k)   # for eval/dream_tracking.py
+                        names=np.array([names[i] for i in pick]),
+                        brains=np.array([brains[i] for i in pick]), real_start_frames=k)   # for eval/dream_tracking.py
     print(f"episodes: {', '.join(names[i] for i in pick[:cfg['gif_episodes']])} (GIFs: left real, right dream)")
     print(f"saved {out / 'dreams.npz'}, {out / 'drift.csv'}, {out / 'drift.png'}, {min(cfg['gif_episodes'], len(pick))} GIFs in {out}")
 
