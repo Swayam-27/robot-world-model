@@ -1,6 +1,0 @@
-# Step 6 action-following: does the dream obey the actions? (eval/action_test.py, laptop: simulator + CPU dream)
-# Run after eval.dream wrote dreams.npz:  python -m eval.action_test --config configs/action_test_v1.yaml
-dream_config: configs/dream_v1.yaml   # checkpoint, reader, sampling settings, and the dreams.npz with actions A
-data_dirs: [outputs/dataset, outputs/dataset_dagger]   # to look up each episode's seed
-report_frames: [10, 50, 100]
-out_dir: outputs/dream_v1
